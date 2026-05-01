@@ -1,21 +1,28 @@
 #include <cmath>
+#include <cassert>
 #include "group_forage_dynamic.hpp"
 
 GroupForageDP::GroupForageDP(Parameters const &params) :
     par{params},
     Wnext(par.tmax + 1, 
-            std::vector < std::vector < double > >(
-                par.xmax + 1, std::vector < double >(par.fmax + 1, 0.0)
+            std::vector < std::vector < std::vector < double > > >(
+                par.xmax + 1, std::vector < std::vector < double > >(
+                    par.fmax + 1, std::vector < double >(par.fmax + 1, 0.0)
                 )
+            )
      ),
     W(par.tmax + 1, 
-            std::vector < std::vector < double > >(
-                par.xmax + 1, std::vector < double >(par.fmax + 1, 0.0)
+            std::vector < std::vector < std::vector < double > > >(
+                par.xmax + 1, std::vector < std::vector < double > >(
+                    par.fmax + 1, std::vector < double >(par.fmax + 1, 0.0)
                 )
+            )
      ),
     Wopt(par.xmax + 1, 
-            std::vector < double >(par.fmax + 1, 0.0)
-                ),
+            std::vector < std::vector < double > >(par.fmax + 1, 
+                std::vector < double>(par.fmax + 1, 0.0)
+                )
+        ),
     f(par.xmax + 1, 
             std::vector < double >(par.fmax + 1, 0.0)
                 ),
@@ -32,7 +39,7 @@ void GroupForageDP::final_fitness()
         {
             for (unsigned f = 0; f <= par.fmax; ++f)
             {
-                Wnext[t_idx][x][f] = 1.0 - std::exp(-par.k * (x - par.xmin));
+                Wnext[t_idx][x][f1][f2] = 1.0 - std::exp(-par.k * (x - par.xmin));
             }
         }
     } // end for t
@@ -51,7 +58,7 @@ double GroupForageDP::food_encounter_prob(double const y1, double const y2)
 // the more folks stay at home the lower the predation probability
 double GroupForageDP::ph(int const n_at_home)
 {
-    return(par.phmax * (1.0 - std::pow(n_at_home / par.n_at_home_max, alpha_ph)));
+    return(par.phmax * (1.0 - std::pow(static_cast<double>(n_at_home) / par.n_at_home_max, alpha_ph)));
 }
 
 
@@ -78,7 +85,7 @@ void GroupForageDP::optimal_decision()
         } // end for x 
     } // end for t
 
-    double f1_dbl,f2_dbl;
+    double f1_dbl,f2_dbl,xpr, xpr1, xpr2, xprdiff, xprpr, xprpr1,xprpr2, xprprdiff;
 
     for (int t{0}; t <= par.tmax; ++t)
     {
@@ -86,14 +93,60 @@ void GroupForageDP::optimal_decision()
         {
             for (int f1{0}; f1 <= par.fmax; ++f1)
             {
-                f1_dbl = static_cast<double>(f1)/fmax;
+                f1_dbl = static_cast<double>(f1)/par.fmax;
 
                 for (int f2{0}; f2 <= par.fmax; ++f2)
                 {
-                    f2_dbl = static_cast<double>(f2)/fmax;
+                    f2_dbl = static_cast<double>(f2)/par.fmax;
 
+                    // value of x'
+                    // i.e., updated resources in case of finding food
+                    xpr = x - par.ac + par.R / 2.0;
+                    // linear interpolation of xpr
+                    xpr1 = std::floor(xpr);
+                    xpr2 = std::ceil(xpr);
+                    xprdiff = xpr - xpr1;
+
+                    assert(xprdiff >= 0);
+                    assert(xprdiff <= 1.0);
+
+
+                    // value of x''
+                    xprpr = x - par.ac;
+                    // linear interpolation of x''
+                    xprpr1 = std::floor(xprpr);
+                    xprpr2 = std::ceil(xprpr);
+                    xprprdiff = xprpr - xprpr1;
+                    assert(xprprdiff >= 0);
+                    assert(xprprdiff <= 1.0);
+
+                    // event 1: both individuals go out to forage, both survive
                     W[t][x][f1][f2] = f1_dbl * f2_dbl * (1.0 - par.pf) * (1.0 - par.pf) *
-                        (1.0 - ph(0)) * 
+                        (1.0 - ph(0)) * food_encounter_prob(par.y1, par.y2) * (
+                                (1.0 - xprdiff) * Wopt[t][xpr1][f1][f2] +
+                                xprdiff * Wopt[t][xpr2][f1][f2]
+                                )
+                        +
+                        (1.0 - food_encounter_prb(par.y1, par.y2)) * (
+                                (1.0 - xprprdiff)  * Wopt[t][xprpr1][f1][f2] +
+                                xprprdiff * Wopt[t][xprpr2][f1][f2]);
+
+                    // event 2: both individuals go out to forage, the non-focal y2 individual dies
+                    W[t][x][f1][f2] += f1_dbl * f2_dbl * par.pf *(1.0 - par.pf) * (1.0 - ph(0)) *
+                        * (food_encounter_prob(par.y1, 0.0) * (
+                                (1.0 - xprdiff) * Vopt[t][xpr1][f1] +
+                                xprdiff * Vopt[t][xpr2][f1] // focal is now alone
+                                    ) +
+                                (1.0 - food_encounter_prob(par.y1, 0.0)) * (
+                                    (1.0 - xprprdiff) * Vopt[t][xprpr1][f1] +
+                                    xprprdiff * Vopt[t][xprpr2][f1]
+                                    )
+                            );
+
+                    // event 2: both individuals go out to forage, the focal y1 individual dies
+                    W[t][x][f1][f2] += f1_dbl * f2_dbl * par.pf * (1.0 - par.pf) * (1.0 - ph(0)) *
+                        * (food_encounter_prob(par.y2, 0.0) 
+
                 }
             }
         }
@@ -107,4 +160,3 @@ void GroupForageDP::write_data()
 void GroupForageDP::write_parameters()
 {
 }
-

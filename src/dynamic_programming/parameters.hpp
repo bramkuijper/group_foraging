@@ -22,7 +22,12 @@ class Parameters {
         double pf{0.1}; // probability with which individuals will get predated upon when foraging
 
         double phmax{0.25}; // max probability of nest predation when all adults are foraging
+        int n_at_home_max{2}; // max number of adults remaining at home
+        double alpha_ph{1.0}; // whether relation between individuals staying home and predation risk of nest is concave, linear or convex
         double fmax{100}; // maximum value of the grid to evaluate 
+        
+        double ac{0.1}; // decrement due to larval development
+        double R{1.0}; // increment upon finding food
 };
 
 

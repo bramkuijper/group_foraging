@@ -117,50 +117,31 @@
 
 \begin_body
 
-\begin_layout Standard
-Group foraging model.
- We have a single well-mixed population,
- in which individuals can choose to join a group or to forage alone.
- Individuals encounter 
-\begin_inset Formula $k$
-\end_inset
+\begin_layout Title
+Foraging for the nest vs nest defense when solitary or breeding in groups
+\end_layout
 
- patches in each time step,
- in which 
-\begin_inset Formula $k\sim\mathrm{Pois}(\lambda)$
-\end_inset
-
-,
- similar to existing models of group foraging 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Caraco1981,Clark1986"
-literal "false"
-
-\end_inset
-
- and have a handling time of 
-\begin_inset Formula $h$
-\end_inset
-
-.
- Crucially,
- individuals can vary in their encounter rate 
-\begin_inset Formula $\lambda$
-\end_inset
-
- and their handling time,
- dependent on their quality (or more interestingly,
- dependent on their current level of resources,
- even),
- however individuals lack any knowledge about their own quality or that of their group mates.
- Yet,
- individuals can learn via various proxies,
- namely how well larvae develop.
+\begin_layout Section
+The model
 \end_layout
 
 \begin_layout Standard
-Individuals are characterised by two state variables,
+Individuals can choose to raise offspring alone or raise a shared brood of offspring (we assume no kin recognition) together with another breeder.
+ During each time step,
+ both individuals in each group can decide to go out and forage for the nest's larvae,
+ leaving themselves vulnerable to predation (at probability 
+\begin_inset Formula $p_{\mathrm{f}}$
+\end_inset
+
+) during foraging.
+ Moreover,
+ when both individuals go out and forage,
+ the nest with larvae is also more vulnerable to predation (at probability 
+\begin_inset Formula $p_{\mathrm{h}}$
+\end_inset
+
+) relative to a scenario in which one or both group members stay at the nest.
+ Individuals are characterised by two state variables,
  
 \begin_inset Formula $x(t)$
 \end_inset
@@ -175,7 +156,7 @@ Individuals are characterised by two state variables,
 \begin_inset Formula $x(t)$
 \end_inset
 
- is the cumulative amount of food provided to the larvae at time 
+ is the cumulative amount of food per larva at time 
 \begin_inset Formula $t$
 \end_inset
 
@@ -203,15 +184,51 @@ Individuals can either decide to stay on their own during breeding or pair up wi
  Hence,
  we have two different fitnesses,
  namely 
-\begin_inset Formula $W(x,t,T)$
+\begin_inset Formula $W(x(t),t)$
 \end_inset
 
- for those individuals who stay together and 
-\begin_inset Formula $V(x,t,T)$
+ for those individuals who stay together (see section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:fitness:together"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
 \end_inset
 
- for those individuals who remain alone.
- 
+ below) and 
+\begin_inset Formula $\mathcal{W}(x(t),t,)$
+\end_inset
+
+ for those individuals who remain alone (see section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:fitness:focal:alone"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+ below).
+ Moreover,
+ when staying together with another individual,
+ individuals can become alone when the other individual dies.
+ As individuals now need to distribute resources over the offspring of both their own and the other breeder's offspring,
+ resulting fitness values are given by 
+\begin_inset Formula $V(x(t),t)$
+\end_inset
+
+ (focal is lone parent) and 
+\begin_inset Formula $U(x(t),t)$
+\end_inset
+
+ (non-focal is lone parent).
 \end_layout
 
 \begin_layout Paragraph
@@ -233,8 +250,7 @@ The terminal fitness function
 \end_inset
 
 .
- We assume that terminal fitness is a decelerating function of the amount of resources an individual / group ?
- has gathered.
+ We assume that terminal fitness is a decelerating function of the amount of resources members of a group have has gathered.
 \begin_inset Formula 
 \begin{align*}
 W\left(x(t),t,T\right) & =1-e^{-k\left(x(t)-x_{\mathrm{min}}\right)},
@@ -256,6 +272,24 @@ can either decide to raise a nest alone or they can decide to pair up with anoth
 \end_layout
 
 \begin_layout Paragraph
+Probability of foraging vs stay at the nest
+\end_layout
+
+\begin_layout Standard
+The central decision variable is the probability 
+\begin_inset Formula $f(y,x(t))$
+\end_inset
+
+ an individual decides to go foraging,
+ while it stays at home with probability 
+\begin_inset Formula $1-f(y,x(t))$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Paragraph
 Food encounters
 \end_layout
 
@@ -263,7 +297,7 @@ Food encounters
 Similar to 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "Mangel1990"
+key "Mangel1988,Mangel1990"
 literal "false"
 
 \end_inset
@@ -276,11 +310,11 @@ literal "false"
 \begin_inset Formula $n\in1,2$
 \end_inset
 
-) has an encounter probability of food that is
+) has an encounter probability of food that is given by a Poisson process
 \begin_inset Formula 
-\begin{align*}
-\lambda\left(y_{1}+y_{2}\right) & =1-e^{-\varepsilon\left(y_{1}+y_{2}\right)},
-\end{align*}
+\begin{align}
+\lambda\left(y_{1}+y_{2}\right) & =1-e^{-\varepsilon\left(y_{1}+y_{2}\right)},\label{eq:encounter_prob}
+\end{align}
 
 \end_inset
 
@@ -292,8 +326,17 @@ where
 \begin_inset Formula $y_{i}$
 \end_inset
 
- reflects foraging quality.
- 
+ reflects foraging quality of each individual.
+ If individual 
+\begin_inset Formula $i$
+\end_inset
+
+ is staying at home,
+ its quality is obviously 
+\begin_inset Formula $y_{i}=0$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Paragraph
@@ -302,7 +345,7 @@ Larval state
 
 \begin_layout Standard
 If no food is found during a time step,
- the larval state is reduced by a fixed amount of 
+ we assume the larval state is reduced by a fixed amount of 
 \begin_inset Formula $a_{\mathrm{c}}$
 \end_inset
 
@@ -318,12 +361,16 @@ literal "false"
 
  eq.
  [3] allows for both a fixed and relative amount),
- reflecing that larvae invest a certain amount of energy for basic physiological function.
- In case individuals find resources 
+ reflecting that larvae invest a certain amount of energy for basic physiological function.
+ With probability 
+\begin_inset Formula $\lambda(y_{1}+y_{2})$
+\end_inset
+
+ individuals find resources for their brood
 \begin_inset Formula 
-\begin{align*}
-x^{\prime}(t+1) & =x(t)-a_{\mathrm{c}}+R/n,
-\end{align*}
+\begin{align}
+x^{\prime}(t+1) & =x(t)-a_{\mathrm{c}}+R/f(n),\label{eq:xprime}
+\end{align}
 
 \end_inset
 
@@ -339,26 +386,52 @@ where
 \begin_inset Formula $t$
 \end_inset
 
-.
-\end_layout
+ (we assume that the value is fixed,
+ but the rate at which resources as found varies,
+ as per eq.
+ [
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:encounter_prob"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
 
-\begin_layout Paragraph
-Actions
+\end_inset
+
+]).
+ This is divided by the amount of eggs 
+\begin_inset Formula $f(n)$
+\end_inset
+
+ produced by both individuals at the start of the brood.
 \end_layout
 
 \begin_layout Standard
-During each time step,
- with probability 
-\begin_inset Formula $f(y,x(t))$
+With probability 
+\begin_inset Formula $1-\lambda(y_{1}+y_{2})$
 \end_inset
 
- an individual decides to go foraging,
- while it stays at home with probability 
-\begin_inset Formula $1-f(y,x(t))$
+ individuals do not find resources,
+ resulting in 
+\begin_inset Formula 
+\begin{align}
+x^{\prime\prime}\left(t+1\right) & =x(t)-a_{c}.\label{eq:xprimeprime}
+\end{align}
+
 \end_inset
 
-.
- If an individual goes out to forage it may get predated upon with rate 
+
+\end_layout
+
+\begin_layout Paragraph
+Foraging 
+\end_layout
+
+\begin_layout Standard
+If an individual goes out to forage it may get predated upon with rate 
 \begin_inset Formula $p_{\mathrm{f}}$
 \end_inset
 
@@ -386,8 +459,15 @@ During each time step,
 Upon predation of the nest we assume that fitness until the end of the season
 \end_layout
 
-\begin_layout Paragraph
-The dynamic programming equation
+\begin_layout Section
+Fitness of a focal individual when breeding in groups
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:fitness:together"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -401,112 +481,181 @@ Consequently,
 \end_inset
 
  .
- We have seven events that can happen,
+ We have 
+\begin_inset Formula $n_{\mathrm{events}}$
+\end_inset
+
+ events that can happen,
  which we number here as 
 \begin_inset Formula $W_{1}\left(x\left(t\right),t\right)$
 \end_inset
 
  to 
-\begin_inset Formula $W_{7}\left(x\left(t\right),t\right)$
+\begin_inset Formula $W_{n_{\mathrm{event}}}\left(x\left(t\right),t\right)$
 \end_inset
 
 ,
  where
 \begin_inset Formula 
 \begin{align*}
-W\left(x(t),t\right) & =\sum^{7}_{i=1}W_{i}\left(x(t),t\right).
+W\left(x(t),t\right) & =\max_{f_{1}}\sum^{n_{\mathrm{event}}}_{i=1}W_{i}\left(x(t),t\right),
 \end{align*}
 
 \end_inset
 
+in which 
+\begin_inset Formula $W_{i}(x(t),t)$
+\end_inset
 
+ are functions of fitness in the next time step 
+\begin_inset Formula $W(x(t+1),t+1)$
+\end_inset
+
+,
+ following standard results in dynamic programming (e.g.,
+ eq.
+ [2.10] in 
+\begin_inset CommandInset citation
+LatexCommand citealp
+key "Mangel1988"
+literal "false"
+
+\end_inset
+
+).
+ The value over which we maximize is the value of 
+\begin_inset Formula $f_{1}$
+\end_inset
+
+,
+ i.e.,
+ the value of the foraging probability of the focal.
+ In other words,
+ we seek to find the optimal foraging probability of the focal given the state of the larvae and its own state 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+.
 \end_layout
 
-\begin_layout Paragraph
-Event 1:
- both individuals forage and return
+\begin_layout Subsection
+Both individuals forage and return
 \end_layout
 
 \begin_layout Standard
 We have
 \begin_inset Formula 
 \begin{align*}
-W_{1}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)f\left(y_{2},x(t)\right)\left(1-p_{\mathrm{f}}\right)^{2}\left(1-p_{h}\left(0\right)\right)\left[\lambda\left(y_{1}+y_{2}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}+y_{2}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+W_{1}\left(x\left(t\right),t\right) & =f_{1}\left(y_{1},x(t)\right)f_{2}\left(y_{2},x(t)\right)\left(1-p_{\mathrm{f}}\right)^{2}\left(1-p_{\mathrm{h}}\left(0\right)\right)\\
+ & \times\left[\lambda\left(y_{1}+y_{2}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}+y_{2}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
 \end{align*}
 
 \end_inset
 
-notice that when the nest would get predated during foraging,
- we assume that fitness is 
-\begin_inset Formula $0$
+as with probability 
+\begin_inset Formula $f_{1}\left(y_{1},x(t)\right)$
 \end_inset
 
- (although this assumption can be changed later on).
- The part between straight brackets reflects that individuals can either find food,
- in which case fitness is given by 
-\begin_inset Formula $W(x^{\prime}(t+1),t+1)$
+ the focal leaves to forage and with probability 
+\begin_inset Formula $f_{2}\left(y_{2},x(t)\right)$
 \end_inset
 
- or they do not find food,
- in which case fitness is given by 
-\begin_inset Formula $W\left(x^{\prime\prime}\left(t+1\right),t+1\right)$
+ the non-focal individual will also leave the nest and forage.
+ Both individuals survive foraging with probability 
+\begin_inset Formula $(1-p_{\mathrm{f}})^{2}$
+\end_inset
+
+ and their nest will avoid predation with probability 
+\begin_inset Formula $1-p_{\mathrm{h}}(0)$
 \end_inset
 
 .
- Here,
- 
-\begin_inset Formula $x^{\prime}(t+1)$
+ In case the nest would get predated during foraging,
+ we assume that resulting fitness is 
+\begin_inset Formula $0$
 \end_inset
 
- is the amount of resources provided to larvae in case indiivdual
+ and that individuals do not have an opportunity to build another nest,
+ although this could be changed later where we could have individuals restarting their nests for example.
+ Clearly,
+ we could allow for focal survival and the opportunity to start another brood,
+ but for the sake of tractability assuming a complete fitness loss is the most straightforward assumption for now.
 \end_layout
 
-\begin_layout Paragraph
-Event 2:
- both individuals forage,
- one dies
+\begin_layout Subsection
+Both individuals go out to forage,
+ the non-focal 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ individual dies
+\end_layout
+
+\begin_layout Standard
+We have 
+\begin_inset Formula 
+\begin{align*}
+W_{2}\left(x\left(t\right),t\right) & =f_{1}\left(y_{1},x(t)\right)f_{2}\left(y_{2},x(t)\right)p_{\mathrm{f}}\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(0\right)\right)\\
+ & \times\left[\lambda\left(y_{1}\right)V\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)V\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right]
+\end{align*}
+
+\end_inset
+
+where as the focal is now alone,
+ its fitness is now given by 
+\begin_inset Formula $V\left(x^{\prime}(t+1),t+1\right)$
+\end_inset
+
+ (see section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:fitness:focal:alone"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+) instead of 
+\begin_inset Formula $W\left(x^{\prime}(t+1),t+1\right)$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Subsection
+Both individuals forage,
+ the focal 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ individual dies
 \end_layout
 
 \begin_layout Standard
 Once the focal has died,
- the focal will still obtain fitness through offspring that the non-focal will still care for.
- 
+ it may still accrue fitness as its brood is now cared for by the other individual,
+ so that it accrues fitness 
+\begin_inset Formula $U$
+\end_inset
+
+ after dying:
 \begin_inset Formula 
 \begin{align*}
-W_{2}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)f\left(y_{2},x(t)\right)p_{\mathrm{f}}\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(0\right)\right)\frac{1}{2}\left[\lambda\left(y_{1}\right)V\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)V\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right.\\
- & +\left.\lambda\left(y_{2}\right)U\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{2}\right)\right)U\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+W_{3}\left(x\left(t\right),t\right) & =f_{1}\left(y_{1},x(t)\right)f_{2}\left(y_{2},x(t)\right)p_{\mathrm{f}}\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(0\right)\right)\\
+ & \times\left[\lambda\left(y_{2}\right)U\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{2}\right)\right)U\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right].
 \end{align*}
 
 \end_inset
 
-where as individuals are now alone the focal's fitness is given by 
-\begin_inset Formula $V(x^{\prime}(t+1),t+1)$
-\end_inset
-
- as the focal is now a lone breeder.
- If the focal does not survive fitness is given by 
-\begin_inset Formula $U$
-\end_inset
-
-.
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Not sure this works,
- as an individual has only half of twice as many eggs it now needs to take care of,
- but it does not know which half...
-\end_layout
-
-\end_inset
-
 
 \end_layout
 
-\begin_layout Paragraph
-Event 3:
- the 
+\begin_layout Subsection
+The 
 \begin_inset Formula $y_{2}$
 \end_inset
 
@@ -516,9 +665,34 @@ Event 3:
 \end_inset
 
  individual stays home
+\end_layout
+
+\begin_layout Standard
+With probability 
+\begin_inset Formula $1-f_{1}\left(y_{1},x(t)\right)$
+\end_inset
+
+ the focal individual stays home,
+ while with probability 
+\begin_inset Formula $f_{2}\left(y_{2},x(t)\right)$
+\end_inset
+
+ the non-focal individual goes out to forage.
+ The non-focal survives the foraging bout with probability 
+\begin_inset Formula $1-p_{\mathrm{f}}$
+\end_inset
+
+.
+ The nest survives predation with probability 
+\begin_inset Formula $p_{h}\left(1\right)$
+\end_inset
+
+ as the focal remains at the nest.
+ We have 
 \begin_inset Formula 
 \begin{align*}
-W_{3}\left(x\left(t\right),t\right) & =\left[1-f\left(y_{1},x(t)\right)\right]f\left(y_{2},x(t)\right)\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(1\right)\right)\frac{1}{2}\left[\lambda\left(y_{2}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{2}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+W_{4}\left(x\left(t\right),t\right) & =\left[1-f_{1}\left(y_{1},x(t)\right)\right]f_{2}\left(y_{2},x(t)\right)\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(1\right)\right)\\
+ & \times\left[\lambda\left(y_{2}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{2}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
 \end{align*}
 
 \end_inset
@@ -526,9 +700,8 @@ W_{3}\left(x\left(t\right),t\right) & =\left[1-f\left(y_{1},x(t)\right)\right]f\
 
 \end_layout
 
-\begin_layout Paragraph
-Event 4:
- the 
+\begin_layout Subsection
+the 
 \begin_inset Formula $y_{2}$
 \end_inset
 
@@ -538,27 +711,33 @@ Event 4:
 \end_inset
 
  individual stays home
+\end_layout
+
+\begin_layout Standard
+With probability 
+\begin_inset Formula $1-f_{1}\left(y_{1},x(t)\right)$
+\end_inset
+
+ the focal individual stays home,
+ while with probability 
+\begin_inset Formula $f_{2}\left(y_{2},x(t)\right)$
+\end_inset
+
+ the non-focal individual goes out to forage.
+ The non-focal then dies with probability 
+\begin_inset Formula $f_{2}(y_{2},x(t))$
+\end_inset
+
+.
+ As no food is being returned,
+ the resource increment is given by 
+\begin_inset Formula $x^{\prime\prime}(t+1)$
+\end_inset
+
+:
 \begin_inset Formula 
 \begin{align*}
-W_{4}\left(x\left(t\right),t\right) & =\left[1-f\left(y_{1},x(t)\right)\right]f\left(y_{2},x(t)\right)p_{\mathrm{f}}\left(1-p_{h}\left(1\right)\right)\frac{1}{2}V\left(x^{\prime\prime}\left(t+1\right),t+1\right),
-\end{align*}
-
-\end_inset
-
-Event 5:
- the 
-\begin_inset Formula $y_{1}$
-\end_inset
-
- individual forages,
- the 
-\begin_inset Formula $y_{2}$
-\end_inset
-
- individual stays home
-\begin_inset Formula 
-\begin{align*}
-W_{5}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)\left[1-f\left(y_{2},x(t)\right)\right]p_{\mathrm{f}}\left(1-p_{h}\left(1\right)\right)\frac{1}{2}\left[\lambda\left(y_{1}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+W_{5}\left(x\left(t\right),t\right) & =\left[1-f_{1}\left(y_{1},x(t)\right)\right]f_{2}\left(y_{2},x(t)\right)p_{\mathrm{f}}\left(1-p_{h}\left(1\right)\right)V\left(x^{\prime\prime}\left(t+1\right),t+1\right),
 \end{align*}
 
 \end_inset
@@ -566,9 +745,33 @@ W_{5}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)\left[1-f\left(y_
 
 \end_layout
 
-\begin_layout Paragraph
-Event 6:
+\begin_layout Subsection
+the 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ individual forages and survives,
  the 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ individual stays home
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula 
+\begin{align*}
+W_{6}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)\left[1-f\left(y_{2},x(t)\right)\right]p_{\mathrm{f}}\left(1-p_{h}\left(1\right)\right)\frac{1}{2}\left[\lambda\left(y_{1}\right)W\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The 
 \begin_inset Formula $y_{1}$
 \end_inset
 
@@ -589,28 +792,7 @@ individual dies
 We have
 \begin_inset Formula 
 \begin{align*}
-W_{6}\left(x\left(t\right),t\right) & =f\left(y_{1},x(t)\right)\left[1-f\left(y_{2},x(t)\right)\right]\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(1\right)\right)\frac{1}{2}U\left(x^{\prime\prime}\left(t+1\right),t+1\right).
-\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Paragraph
-Event 7:
- both the 
-\begin_inset Formula $y_{1}$
-\end_inset
-
- and 
-\begin_inset Formula $y_{2}$
-\end_inset
-
- individuals stay home
-\begin_inset Formula 
-\begin{align*}
-W_{7}\left(x\left(t\right),t\right) & =\left(1-f\left(y_{1},x\left(t\right)\right)\right)\left(1-f\left(y_{2},x\left(t\right)\right)\right)\left(1-p_{h}\left(2\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)
+W_{7}\left(x\left(t\right),t\right) & =f_{1}\left(y_{1},x(t)\right)\left[1-f_{2}\left(y_{2},x(t)\right)\right]\left(1-p_{\mathrm{f}}\right)\left(1-p_{h}\left(1\right)\right)\frac{1}{2}U\left(x^{\prime\prime}\left(t+1\right),t+1\right).
 \end{align*}
 
 \end_inset
@@ -619,23 +801,345 @@ W_{7}\left(x\left(t\right),t\right) & =\left(1-f\left(y_{1},x\left(t\right)\righ
 \end_layout
 
 \begin_layout Subsection
-Individuals when alone
-\end_layout
-
-\begin_layout Standard
-Event 
-\begin_inset Formula $1$
-\end_inset
-
-,
- 
+Both the 
 \begin_inset Formula $y_{1}$
 \end_inset
 
- individual goes out to forage
+ and 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ individuals stay home
+\end_layout
+
+\begin_layout Standard
+We have
 \begin_inset Formula 
 \begin{align*}
-V_{1}\left(x\left(t\right),t\right) & =f\left(y_{1},x\left(t\right)\right)
+W_{8}\left(x\left(t\right),t\right) & =\left(1-f\left(y_{1},x\left(t\right)\right)\right)\left(1-f\left(y_{2},x\left(t\right)\right)\right)\left(1-p_{h}\left(2\right)\right)W\left(x^{\prime\prime}\left(t+1\right),t+1\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Fitness of a focal 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ individual that starts off together but ends up alone
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:fitness:focal:alone"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula 
+\begin{align*}
+V\left(x(t),t\right) & =\sum^{n_{\mathrm{event,single}}}_{i=1}V_{i}\left(x(t),t\right),
+\end{align*}
+
+\end_inset
+
+and we have the following events:
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ focal goes out to forage
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula 
+\begin{align}
+V_{1}\left(x\left(t\right),t\right) & =f_{1}\left(y_{1},x\left(t\right)\right)\left(1-p_{\mathrm{f}}\right)\left(1-p_{\mathrm{h}}\left(0\right)\right)\nonumber \\
+ & \times\left[\lambda\left(y_{1}\right)V\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)V\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],\label{eq:V1:focal_forages}
+\end{align}
+
+\end_inset
+
+and we do not have to consider the case in which either the individual itself perishes during foraging (probability 
+\begin_inset Formula $p_{\mathrm{f}}$
+\end_inset
+
+) or the nest perishes (probability 
+\begin_inset Formula $p_{\mathrm{h}}(0)$
+\end_inset
+
+),
+ as in both cases,
+ resulting fitness is considered 
+\begin_inset Formula $0$
+\end_inset
+
+ (TODO:
+ we really need to allow for a scenario in which parental presence is not necessary for brood survival,
+ particularly once 
+\begin_inset Formula $x(t)>>x_{\mathrm{min}}$
+\end_inset
+
+,
+ but allowing for survival of offspring in the absence of parents would considerably complicate the model).
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ focal stays at home
+\end_layout
+
+\begin_layout Standard
+With probability 
+\begin_inset Formula $1-f_{1}\left(y_{1},x(t)\right)$
+\end_inset
+
+ an individual would stay at the nest,
+ so that it avoids being predated while foraging,
+ while its nest predation probability is now 
+\begin_inset Formula $p_{\mathrm{h}}(1)$
+\end_inset
+
+.
+ As an individual stays at home it will not recover food,
+ so that its larval resource status is given by 
+\begin_inset Formula $x^{\prime\prime}(t+1)$
+\end_inset
+
+.
+ We have
+\begin_inset Formula 
+\begin{align*}
+V_{2}\left(x\left(t\right),t\right) & =\left[1-f_{1}\left(y_{1},x\left(t\right)\right)\right]\left(1-p_{\mathrm{h}}\left(1\right)\right)\left[V\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right].
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Fitness of a non-focal 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ individual that starts off together but ends up alone
+\end_layout
+
+\begin_layout Standard
+Similar logic applies to when the non-focal survives.
+ However,
+ because we allow for different foraging abilities of focal and non-focal,
+ 
+\begin_inset Formula $V\left(x(t),t\right)\neq U\left(x(t),t\right)$
+\end_inset
+
+.
+ Again,
+ we sum over events so that
+\begin_inset Formula 
+\begin{align*}
+U\left(x(t),t\right) & =\sum^{n_{\mathrm{event,single}}}_{i=1}U_{i}\left(x(t),t\right),
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ non-focal goes out to forage
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula 
+\begin{align*}
+U_{1}\left(x\left(t\right),t\right) & =f_{2}\left(y_{2},x\left(t\right)\right)\left(1-p_{\mathrm{f}}\right)\left(1-p_{\mathrm{h}}\left(0\right)\right)\\
+ & \times\left[\lambda\left(y_{2}\right)U\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{2}\right)\right)U\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right].
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{2}$
+\end_inset
+
+ non-focal stays home
+\end_layout
+
+\begin_layout Standard
+We have
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+U_{2}\left(x\left(t\right),t\right) & =\left[1-f_{2}\left(y_{2},x\left(t\right)\right)\right]\left(1-p_{\mathrm{h}}\left(1\right)\right)\left[U\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right].
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Fitness of the focal 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ that breeds alone
+\end_layout
+
+\begin_layout Standard
+In case an individual breeds alone,
+ the fitness value 
+\begin_inset Formula $\mathcal{W}\left(x(t),t\right)$
+\end_inset
+
+ now centers on a single brood,
+ rather than the broods of two individuals.
+ Hence,
+ relative to eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:xprime"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+) the brood is now produced by a single breeder only.
+ Hence,
+ we now do not need to divide by the eggs produced by 
+\begin_inset Formula $n$
+\end_inset
+
+ females,
+ so that our resource-increment equation is given by
+\begin_inset Formula 
+\begin{align}
+x^{\prime}(t+1) & =x(t)-a_{\mathrm{c}}+R\label{eq:xprime:single}
+\end{align}
+
+\end_inset
+
+Again,
+ we sum over all events,
+ yielding
+\begin_inset Formula 
+\begin{align*}
+\mathcal{W}\left(x(t),t\right) & =\max_{f_{1}}\sum^{n_{\mathrm{events,single}}}_{i=1}\mathcal{W}_{i}\left(x(t),t\right),
+\end{align*}
+
+\end_inset
+
+where we again maximize over all leaving probabilities.
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ focal goes out to forage
+\end_layout
+
+\begin_layout Standard
+This is identical to eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:V1:focal_forages"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+),
+ except that the increment in 
+\begin_inset Formula $x^{\prime}(t+1)$
+\end_inset
+
+ is now given by eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:xprime:single"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+) instead of eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:xprime"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+tuple "list"
+
+\end_inset
+
+).
+ We have
+\begin_inset Formula 
+\begin{align*}
+\mathcal{W}_{1}\left(x(t),t\right) & =f_{1}\left(y_{1},x\left(t\right)\right)\left(1-p_{\mathrm{f}}\right)\left(1-p_{\mathrm{h}}\left(0\right)\right)\\
+ & \times\left[\lambda\left(y_{1}\right)\mathcal{W}\left(x^{\prime}\left(t+1\right),t+1\right)+\left(1-\lambda\left(y_{1}\right)\right)\mathcal{W}\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right],
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Formula $y_{1}$
+\end_inset
+
+ focal stays home
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula 
+\begin{align*}
+\mathcal{W}_{2}\left(x(t),t\right)= & \left[1-f_{1}\left(y_{1},x\left(t\right)\right)\right]\left(1-p_{\mathrm{h}}\left(1\right)\right)\left[\mathcal{W}\left(x^{\prime\prime}\left(t+1\right),t+1\right)\right].
 \end{align*}
 
 \end_inset
