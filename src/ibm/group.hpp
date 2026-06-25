@@ -10,7 +10,15 @@ class Group
     public:
         std::vector<Individual> members;
 
-        Group(int const nmembers, Parameters const &params);
+        double resources{0.0};
+
+        // initiation constructor
+        Group(
+                int const nmembers, 
+                Parameters const &params
+                );
+
+        // 
         Group(Group const &other);
 
         void operator=(Group const &other);

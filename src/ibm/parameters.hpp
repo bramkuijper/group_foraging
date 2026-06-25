@@ -32,35 +32,84 @@ class Parameters
     public:
         // population size, which should be even number
         unsigned int n_group{500};
-        unsigned int init_n_per_group{1};
+        unsigned int init_n_per_group{2};
+
+        // probability of having a group with a single individual
+        double pr_single{0.5};
 
         // duration of the simulation
-        unsigned int max_generation{20000};
+        unsigned int max_generation{10000};
+        
+        unsigned int max_time_season{50};
 
         // interval of number of generations 
         // at which data is printed
         unsigned int data_print_interval{10};
 
-        // per-generation probabability that p allele mutates
-        double mu_p_group{0.01};
+        // maximum resources
+        double max_resources{30.0};
+
+        // slope of the foraging success function
+        double epsilon{1.0};
+
+        double init_resources{0.0};
+
+        double nest_pred_scale{0.8};
+        double nest_pred_baseline{0.1};
+
+        // cost of offspring development in terms of resources
+        double ac{1.0};
+
+        // resources gained when foraging
+        double R{4.0};
+        
+        // mutation rates and initial values
+
+        // per-generation probabability that alleles mutate
+        // for resource reaction norm
+        double mu_a_resource{0.0};
+        double mu_b_resource{0.0};
+        
+        // initial values for resource reaction norm
+        double a_resource_init{0.0};
+        double b_resource_init{0.0};
+
+        // per-generation probabability that alleles mutate
+        // for time of season reaction norm
+        double mu_a_t{0.0};
+        double mu_b_t{0.0};
+
+        // initial values for time of season reaction norm
+        double a_t_init{0.0};
+        double b_t_init{0.0};
+
+        double mu_a_qown{0.0};
+        double mu_b_qown{0.0};
+
+        double a_qown_init{0.0};
+        double b_qown_init{0.0};
+
+        double mu_a_qother{0.0};
+        double mu_b_qother{0.0};
+
+        double a_qother_init{0.0};
+        double b_qother_init{0.0};
+        
+        double mu_a_action_other{0.0};
+        double mu_b_action_other{0.0};
+
+        double a_action_other_init{0.0};
+        double b_action_other_init{0.0};
+
+        // boundaries for the logistic
+        double logistic_min_bound{-10.0};
+        double logistic_max_bound{-10.0};
 
         // standard deviation of mutational effect size
         double sdmu{0.02};
 
-        // efficacy of sexual selection (see Pomiankowski et al 1991 Evolution)
-        double a{1.0};
-
-        // survival cost of female choice (see Pomiankowski et al 1991 Evolution)
-        double b{0.0025};
-
         // handling time of lq and hq individuals
         double h[2]{0.5,2.0};
-
-        // encounter rate of food
-        double lambda[2]{1.5, 1.5};
-
-        // survival cost of male ornamentation
-        double c{0.5};
 
         // quality variation
         double p_high_quality{0.5};
@@ -68,7 +117,7 @@ class Parameters
         // initial value of joining a group
         double init_p_group{0.25};
 
-        std::string file_name{"sim_group_joining.txt"};
+        std::string file_name{"sim_group_forage.txt"};
 };
 
 #endif

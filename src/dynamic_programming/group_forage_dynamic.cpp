@@ -65,6 +65,8 @@ double GroupForageDP::ph(int const n_at_home)
 void GroupForageDP::optimal_decision()
 {
     double fitness;
+
+    Wopt[t][xpr1][f1][f2]
     for (int t{0}; t <= par.tmax; ++t)
     {
         for (int x{0}; x <= par.xmax; ++x)
@@ -127,7 +129,7 @@ void GroupForageDP::optimal_decision()
                                 xprdiff * Wopt[t][xpr2][f1][f2]
                                 )
                         +
-                        (1.0 - food_encounter_prb(par.y1, par.y2)) * (
+                        (1.0 - food_encounter_prob(par.y1, par.y2)) * (
                                 (1.0 - xprprdiff)  * Wopt[t][xprpr1][f1][f2] +
                                 xprprdiff * Wopt[t][xprpr2][f1][f2]);
 

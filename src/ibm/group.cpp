@@ -7,10 +7,12 @@ Group::Group(int const nmembers, Parameters const &params) :
 
 // copy constructor
 Group::Group(Group const &other) :
-    members(other.members)
+    members(other.members),
+    resources(other.resources)
 {}
 
 void Group::operator=(Group const &other)
 {
     members = other.members;
+    resources = other.resources;
 }

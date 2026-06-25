@@ -6,7 +6,7 @@
 #include <random>
 #include <fstream>
 #include "parameters.hpp"
-#include "individual.hpp"
+#include "group.hpp"
 
 class Simulation
 {
@@ -37,13 +37,23 @@ class Simulation
         // population of males, females and offspring
         std::vector <Group> metapopulation{};
 
+        // vector containing the nest predation probabilities
+        // for different numbers of defenders
+        std::vector <double> p_nest_predation{};
+
         // current generation
         unsigned int generation{0};
+        unsigned int time_of_season{0};
 
         void reproduce();
         void write_data();
         void write_parameters();
         void write_data_headers();
+
+        void forage(unsigned const t);
+        void learn();
+
+        void init_nest_predation();
 
     public:
         // initialize the simulation

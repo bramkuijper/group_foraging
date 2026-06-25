@@ -1,6 +1,7 @@
 #include <cassert>
 #include <random>
 #include <iostream>
+#include "group.hpp"
 #include "simulation.hpp"
 
 
@@ -11,35 +12,140 @@ Simulation::Simulation(Parameters const &params) :
     par{params}, // copy over the parameters
     data_file{par.file_name}, // initialize the data file to write output to
     uniform{0.0,1.0}, // initialize the uniform distribution 
-    metapopulation{par.n_group, Group(par.init_n_per_group, params)} // initialize all males
+    metapopulation{par.n_group, 
+        Group(par.init_n_per_group, params)} // initialize all males
 {}
 
 
-
-void Simulation::forage()
+void Simulation::forage(unsigned const t)
 {
     unsigned group_size;
+    bool q;
 
-    // normally a Poisson process has mean 1/(1/lambda) = lambda, however a delay
-    // Poisson process has mean 1.0 / (h + 1/lambda). See Mangel & Clark 1988, pp. 37, 38
-    
-    std::array <std::poisson_distribution, 2> number_encounters{
-        std::poisson_distribution<>{1.0 / (par.h[0] + 1.0 / par.lambda[0])},
-        std::poisson_distribution<>{1.0 / (par.h[0] + 1.0 / par.lambda[0])}
-        };
+    double p_forage;
 
+    // averages of other individuals
+    double average_action_previous_others{};
+    double average_quality_others{};
+
+    // aux variable to keep 
+    // track of this individual's quality
+    bool quality{};
+
+    // keep track of the new resources
+    double new_group_resources{};
+
+    double sum_quality_group{};
+
+    unsigned n_foraging{};
+
+    unsigned group_ctr_test{0};
+
+    // go through all groups
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
             ++group_iter)
     {
         group_size = static_cast<unsigned>(group_iter->members.size());
 
-        for (auto individual_iter{group_iter->members.begin()},
-                    individual_iter != group_iter->members.end(),
-                    ++individual_iter)
+        // reset stats things
+        new_group_resources = 0.0;
+        average_action_previous_others = 0.0;
+        average_quality_others = 0.0;
+        sum_quality_group = 0.0;
+        n_foraging = 0;
+
+        // cannot use iterators as we need to avoid
+        // including the focal individual in calculating the 
+        // averages of non-focal individuals
+        for (unsigned int individual_idx{0};
+                individual_idx < group_size;
+                ++individual_idx)
         {
-            q = individual_iter->quality;
+            for (unsigned int individual2_idx{0};
+                    individual2_idx < group_size;
+                    ++individual2_idx)
+            {
+                // if this individual is the same as the focal 
+                // ignore the remainder as those pertain to stats
+                // from others in the group
+                if (individual_idx == individual2_idx)
+                {
+                    continue;
+                }
+
+                average_action_previous_others += 
+                    group_iter->members[individual2_idx].action_previous;
+
+                average_quality_others += 
+                    group_iter->members[individual2_idx].quality;
+            } // end for individual2
+   
+            if (group_size > 1)
+            {
+                average_action_previous_others /= group_size - 1;
+                average_quality_others /= group_size - 1;
+            }
+            
+            quality = group_iter->members[individual_idx].quality;
+
+            // and calculate prob to forage
+            p_forage = group_iter->members[individual_idx].prob_forage(
+                group_iter->resources / par.max_resources,
+                static_cast<double>(t) / par.max_time_season,
+                static_cast<double>(quality),
+                average_quality_others,
+                average_action_previous_others
+                    );
+
+            // ok individual goes out to forage
+            if (uniform(rng_r) < p_forage)
+            {
+                sum_quality_group += quality;
+                ++n_foraging;
+
+
+            } // 
+        } // end for individual_idx
+
+        group_iter->resources -= par.ac;
+   
+        // now update resources for this group
+        if (uniform(rng_r) < 
+                1.0 - std::exp(-par.epsilon * sum_quality_group))
+        {
+            group_iter->resources += par.R / group_size;
+        } 
+
+        assert(group_size >= n_foraging);
+
+        // calculate predation of the nest
+        if (uniform(rng_r) < 
+                p_nest_predation[group_size - n_foraging])
+        {
+            // group dead
+            group_iter->resources = -10000; 
         }
+
+        std::cout << t << " " << group_ctr_test 
+            << " " << group_size 
+            << " " << n_foraging
+            << " " << group_iter->resources << std::endl;
+
+        ++group_ctr_test;
+    } // end for group
+} // end forage()
+
+// calculate survival rate of the nest
+// in the presence of n_defenders
+void Simulation::init_nest_predation()
+{
+    for (unsigned n_idx{0}; n_idx < par.n_group; ++n_idx)
+    {
+        p_nest_predation[n_idx] = par.nest_pred_baseline 
+            + par.nest_pred_scale * 
+            static_cast<double>(
+                    par.n_group - n_idx) / par.n_group;
     }
 }
 
@@ -51,11 +157,20 @@ void Simulation::run()
             generation <= par.max_generation; 
             ++generation)
     {
-        forage();
-        learn();
+        // start with 0 resources
+        for (auto group_iter{metapopulation.begin()};
+                group_iter != metapopulation.end();
+                ++group_iter)
+        {
+            group_iter->resources = 0.0;
+        }
 
-
-
+        for (time_of_season = 0;
+                time_of_season <= par.max_time_season;
+                ++time_of_season)
+        {
+            forage(time_of_season);
+        }
 
         // write statistics to file
         if (generation % par.data_print_interval == 0)
@@ -72,30 +187,35 @@ void Simulation::run()
         
 } // end run_simulation()
 
-// ok individuals group forage or not 
-void Simulation::forage()
-{
-    std::vector <unsigned> in_group{};
-
-    for (auto ind_iter{individuals.begin(0)};
-            ind_iter != individuals.end();
-            ++ind_iter)
-    {
-
-    }
-} // end forage()
-
 
 
 void Simulation::reproduce()
 {
-    if (individuals.size() < 1)
+    std::vector <double> reproduction_vector{};
+
+    double sum_resources{0.0};
+    for (auto group_iter{metapopulation.begin()};
+            group_iter != metapopulation.end();
+            ++group_iter)
     {
-        write_data();
-        write_parameters();
-        exit(1);
+        reproduction_vector.push_back(group_iter->resources);
+        sum_resources += group_iter->resources;
     }
 
+    std::discrete_distribution group_reproduction_sampler(
+            reproduction_vector.begin(),
+            reproduction_vector.end());
+
+    for (unsigned int group_idx{0}; 
+            group_idx < par.n_group;
+            ++group_idx)
+    {
+        if (uniform(rng_r) < par.pr_single)
+        {
+
+
+        }
+    }
 } // end reproduce()
 
 void Simulation::write_data()
@@ -114,18 +234,6 @@ void Simulation::write_parameters()
         << "seed;" << seed << ";" << std::endl
         << "n_group;" << par.n_group << ";" << std::endl
         << "init_n_per_group;" << par.init_n_per_group << ";" << std::endl
-        << "max_generation;" << par.max_generation << ";" << std::endl
-        << "n_males_sampled;" << par.n_males_sampled << ";" << std::endl
-        << "mu_t;" << par.mu_t << ";" << std::endl
-        << "mu_p;" << par.mu_p << ";" << std::endl
-        << "max_mut_p;" << par.max_mut_p << ";" << std::endl
-        << "max_mut_t;" << par.max_mut_t << ";" << std::endl
-        << "biast;" << par.biast << ";" << std::endl
-        << "a;" << par.a << ";" << std::endl
-        << "b;" << par.b << ";" << std::endl
-        << "c;" << par.c << ";" << std::endl
-        << "only_positive;" << par.only_positive << ";" << std::endl
-        << "bias_negative;" << par.bias_negative << ";" << std::endl
-        << "init_t;" << par.init_t << ";" << std::endl
-        << "init_p;" << par.init_p << ";" << std::endl;
-}
+        << "max_generation;" << par.max_generation << ";" << std::endl;
+
+} // end write_parameters
