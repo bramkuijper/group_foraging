@@ -9,6 +9,7 @@ class Group
 {
     public:
         std::vector<Individual> members;
+        std::vector<Individual> juveniles;
 
         double resources{0.0};
 

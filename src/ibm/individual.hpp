@@ -49,7 +49,6 @@ class Individual
 
         // birth constructor
         Individual(Individual const &mother,
-                Individual const &father,
                 std::mt19937 &rng_r,
                 Parameters const &parms
                 );

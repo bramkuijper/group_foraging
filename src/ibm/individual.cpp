@@ -188,7 +188,6 @@ void Individual::mutate(
 
 
 Individual::Individual(Individual const &mother,
-        Individual const &father,
         std::mt19937 &rng_r,
         Parameters const &params) 
 {
@@ -199,34 +198,34 @@ Individual::Individual(Individual const &mother,
 
     // inheritance
     a_resource[0] = mother.a_resource[random_segregator(rng_r)];
-    a_resource[1] = father.a_resource[random_segregator(rng_r)];
+    a_resource[1] = mother.a_resource[random_segregator(rng_r)];
 
     b_resource[0] = mother.b_resource[random_segregator(rng_r)];
-    b_resource[1] = father.b_resource[random_segregator(rng_r)];
+    b_resource[1] = mother.b_resource[random_segregator(rng_r)];
 
     a_t[0] = mother.a_t[random_segregator(rng_r)];
-    a_t[1] = father.a_t[random_segregator(rng_r)];
+    a_t[1] = mother.a_t[random_segregator(rng_r)];
     
     b_t[0] = mother.b_t[random_segregator(rng_r)];
-    b_t[1] = father.b_t[random_segregator(rng_r)];
+    b_t[1] = mother.b_t[random_segregator(rng_r)];
     
     a_qown[0] = mother.a_qown[random_segregator(rng_r)];
-    a_qown[1] = father.a_qown[random_segregator(rng_r)];
+    a_qown[1] = mother.a_qown[random_segregator(rng_r)];
 
     b_qown[0] = mother.b_qown[random_segregator(rng_r)];
-    b_qown[1] = father.b_qown[random_segregator(rng_r)];
+    b_qown[1] = mother.b_qown[random_segregator(rng_r)];
     
     a_qother[0] = mother.a_qother[random_segregator(rng_r)];
-    a_qother[1] = father.a_qother[random_segregator(rng_r)];
+    a_qother[1] = mother.a_qother[random_segregator(rng_r)];
 
     b_qother[0] = mother.b_qother[random_segregator(rng_r)];
-    b_qother[1] = father.b_qother[random_segregator(rng_r)];
+    b_qother[1] = mother.b_qother[random_segregator(rng_r)];
     
     a_action_other[0] = mother.a_action_other[random_segregator(rng_r)];
-    a_action_other[1] = father.a_action_other[random_segregator(rng_r)];
+    a_action_other[1] = mother.a_action_other[random_segregator(rng_r)];
 
     b_action_other[0] = mother.b_action_other[random_segregator(rng_r)];
-    b_action_other[1] = father.b_action_other[random_segregator(rng_r)];
+    b_action_other[1] = mother.b_action_other[random_segregator(rng_r)];
 
     mutate(rng_r, params);
     

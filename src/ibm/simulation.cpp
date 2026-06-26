@@ -194,27 +194,79 @@ void Simulation::reproduce()
     std::vector <double> reproduction_vector{};
 
     double sum_resources{0.0};
-    for (auto group_iter{metapopulation.begin()};
-            group_iter != metapopulation.end();
-            ++group_iter)
+
+    for (unsigned int group_idx{0};
+            group_idx < metapopulation.size();
+            ++group_idx)
     {
-        reproduction_vector.push_back(group_iter->resources);
-        sum_resources += group_iter->resources;
-    }
+        reproduction_vector.push_back(metapopulation[group_idx].resources);
+
+        sum_resources += metapopulation[group_idx].resources;
+    } // end for group_idx
+
+    assert(sum_resources > 0.0); 
 
     std::discrete_distribution group_reproduction_sampler(
             reproduction_vector.begin(),
             reproduction_vector.end());
 
-    for (unsigned int group_idx{0}; 
-            group_idx < par.n_group;
-            ++group_idx)
+    unsigned int group_origin_idx;
+    unsigned int parent_idx;
+
+    std::uniform_int_distribution <unsigned> 
+        parent_sampler{0, par.init_n_per_group};
+
+    // TODO: allow for linear increases in offspring production
+    // see Field et al 2000 Nature --
+    //
+    // reset after every t time steps
+    
+    unsigned target_group_size{0};
+
+    for (auto group_iter{metapopulation.begin()};
+            group_iter != metapopulation.end();
+            ++group_iter)
     {
-        if (uniform(rng_r) < par.pr_single)
+        target_group_size = uniform(rng_r) < par.pr_single ?
+            1 : par.init_n_per_group;
+
+        for (unsigned newborn_idx{0};
+                newborn_idx < target_group_size;
+                ++newborn_idx)
         {
+            group_origin_idx = group_reproduction_sampler(rng_r);
 
+            // always use first parent of a local group...
+            // unless group size > 1
+            parent_idx = 0;
 
-        }
+            if (group_iter->members.size() == 
+                    par.init_n_per_group)
+            {
+                parent_idx = parent_sampler(rng_r);
+            }
+
+            // remove any pre-existing juveniles in this group
+            // which are basically left over from recruitment from
+            // previous generations
+            group_iter->juveniles.clear();
+
+            group_iter->juveniles.push_back(
+                    Individual(
+                        metapopulation[group_origin_idx].members[parent_idx],
+                        rng_r,
+                        par));
+        } // end for newborn idx
+    }
+
+    // now replace members with juveniles
+    for (auto group_iter{metapopulation.begin()};
+            group_iter != metapopulation.end();
+            ++group_iter)
+    {
+        group_iter->members.clear();
+
+        group_iter->members = group_iter->juveniles;
     }
 } // end reproduce()
 
