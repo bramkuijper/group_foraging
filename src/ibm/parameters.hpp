@@ -54,13 +54,22 @@ class Parameters
 
         double init_resources{0.0};
 
+        // range in the [0,1] probability space that
+        // affects nest predation: if nest_pred_scale = 1
+        // then individuals with no helpers on the nest
+        // undergo full predation
         double nest_pred_scale{0.8};
+
+
+        // baseline level of predation of a nest, reflecting
+        // predation risk when all helpers 
+        // are present on the nest
         double nest_pred_baseline{0.1};
 
         // cost of offspring development in terms of resources
         double ac{1.0};
 
-        // resources gained when foraging
+        // resources gained per time step when foraging
         double R{4.0};
         
         // mutation rates and initial values
@@ -107,9 +116,6 @@ class Parameters
 
         // standard deviation of mutational effect size
         double sdmu{0.02};
-
-        // handling time of lq and hq individuals
-        double h[2]{0.5,2.0};
 
         // quality variation
         double p_high_quality{0.5};

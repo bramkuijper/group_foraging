@@ -1,7 +1,7 @@
 #include "group.hpp"
 
 // group creation constructor
-Group::Group(int const nmembers, Parameters const &params) :
+Group::Group(unsigned const nmembers, Parameters const &params) :
     members(nmembers, Individual(params))
 {}
 

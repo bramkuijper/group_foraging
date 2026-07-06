@@ -20,7 +20,6 @@ Simulation::Simulation(Parameters const &params) :
 void Simulation::forage(unsigned const t)
 {
     unsigned group_size;
-    bool q;
 
     double p_forage;
 
@@ -48,7 +47,7 @@ void Simulation::forage(unsigned const t)
     {
         group_size = static_cast<unsigned>(group_iter->members.size());
 
-        // reset stats things
+        // reset stats 
         new_group_resources = 0.0;
         average_action_previous_others = 0.0;
         average_quality_others = 0.0;
@@ -264,19 +263,215 @@ void Simulation::reproduce()
             group_iter != metapopulation.end();
             ++group_iter)
     {
+        // clear existing members
         group_iter->members.clear();
 
+        // replace members with juveniles
         group_iter->members = group_iter->juveniles;
     }
 } // end reproduce()
 
 void Simulation::write_data()
 {
+    // variables to calculate 
+    // means and variances
+    double mean_a_resource{0.0};
+    double ss_a_resource{0.0};
+    
+    double mean_b_resource{0.0};
+    double ss_b_resource{0.0};
+    
+    double mean_a_t{0.0};
+    double ss_a_t{0.0};
+    
+    double mean_b_t{0.0};
+    double ss_b_t{0.0};
+
+    double mean_a_qown{0.0};
+    double ss_a_qown{0.0};
+    
+    double mean_b_qown{0.0};
+    double ss_b_qown{0.0};
+    
+    double mean_a_qother{0.0};
+    double ss_a_qother{0.0};
+    
+    double mean_b_qother{0.0};
+    double ss_b_qother{0.0};
+    
+    double mean_a_action_other{0.0};
+    double ss_a_action_other{0.0};
+    
+    double mean_b_action_other{0.0};
+    double ss_b_action_other{0.0};
+
+    // aux variable 
+    double x;
+
+    unsigned n{0};
+
+    for (auto group_iter{metapopulation.begin()};
+            group_iter != metapopulation.end();
+            ++group_iter)
+    {
+        for (auto individual_iter{group_iter->members.begin()};
+                individual_iter != group_iter->members.end();
+                ++individual_iter)
+        {
+            x = 0.5 * (individual_iter->a_resource[0] + 
+                individual_iter->a_resource[1]);
+
+            mean_a_resource += x;
+            ss_a_resource += x * x;
+
+            x = 0.5 * (individual_iter->b_resource[0] + 
+                individual_iter->b_resource[1]);
+
+            mean_b_resource += x;             
+            ss_b_resource += x * x;
+
+            x = 0.5 * (individual_iter->a_t[0] + 
+                individual_iter->a_t[1]);
+
+            mean_a_t += x;
+            ss_a_t += x * x;
+
+            x = 0.5 * (individual_iter->b_t[0] + 
+                individual_iter->b_t[1]);
+
+            mean_b_t += x;
+            ss_b_t += x * x;
+
+            x = 0.5 * (individual_iter->a_qown[0] + 
+                individual_iter->a_qown[1]);
+
+            mean_a_qown += x;            
+            ss_a_qown += x * x;
+
+            x = 0.5 * (individual_iter->b_qown[0] + 
+                individual_iter->b_qown[1]);
+
+            mean_b_qown += x;            
+            ss_b_qown += x *x;
+
+            x = 0.5 * (individual_iter->a_qother[0] + 
+                individual_iter->a_qother[1]);
+
+            mean_a_qother += x;
+            ss_a_qother += x * x;
+
+            x = 0.5 * (individual_iter->b_qother[0] + 
+                individual_iter->b_qother[1]);
+
+            mean_b_qother += x;             
+            ss_b_qother += x * x;
+
+            x = 0.5 * (individual_iter->a_action_other[0] + 
+                individual_iter->a_action_other[1]);
+
+            mean_a_action_other += x;
+            ss_a_action_other += x * x;
+
+            x = 0.5 * (individual_iter->b_action_other[0] + 
+                individual_iter->b_action_other[1]);
+
+            mean_b_action_other += x;
+            ss_b_action_other += x * x;
+
+            ++n;
+        } // end for individual_iter
+    } // end for group_iter
+
+    // variables to calculate 
+    // means and variances
+    mean_a_resource /= n;
+
+    double var_a_resource{ss_a_resource / n - mean_a_resource * mean_a_resource};
+
+    mean_b_resource /= n;
+    double var_b_resource{ss_b_resource / n - mean_b_resource * mean_b_resource};
+    
+    mean_a_t /= n;
+    double var_a_t{ss_a_t / n - mean_a_t * mean_a_t};
+    
+    mean_b_t /= n;
+    double var_b_t{ss_b_t / n - mean_b_t * mean_b_t};
+
+    mean_a_qown /= n;
+    double var_a_qown{ss_a_qown / n - mean_a_qown * mean_a_qown};
+    
+    mean_b_qown /= n;
+    double var_b_qown{ss_b_qown / n - mean_b_qown * mean_b_qown};
+    
+    mean_a_qother /= n;
+    double var_a_qother{ss_a_qother / n - mean_a_qother * mean_a_qother};
+    
+    mean_b_qother /= n;
+    double var_b_qother{ss_b_qother / n - mean_b_qother * mean_b_qother};
+    
+    mean_a_action_other /= n;
+    double var_a_action_other{ss_a_action_other / n -
+        mean_a_action_other * mean_a_action_other};
+    
+    mean_b_action_other /= n;
+    double var_b_action_other{ss_b_action_other / n -
+        mean_b_action_other * mean_b_action_other};
+
+
+    double mean_n_per_group = static_cast<double>(n) / metapopulation.size();
+
+    data_file << generation << ";" 
+        << time_of_season << ";"
+        << mean_a_resource << ";"
+        << var_a_resource << ";"
+        << mean_b_resource << ";"
+        << var_b_resource << ";"
+        << mean_a_t << ";"
+        << var_a_t << ";"
+        << mean_b_t << ";"
+        << var_b_t << ";"
+        << mean_a_qown << ";"
+        << var_a_qown << ";"
+        << mean_b_qown << ";"
+        << var_b_qown << ";" 
+        << mean_a_qother << ";"
+        << var_a_qother << ";"
+        << mean_b_qother << ";"
+        << var_b_qother << ";" 
+        << mean_a_action_other << ";"
+        << var_a_action_other << ";"
+        << mean_b_action_other << ";"
+        << var_b_action_other << ";" 
+        << mean_n_per_group << ";" 
+        << std::endl;
 } // end write_data()
 
 void Simulation::write_data_headers()
 {
-    data_file << "generation;mean_t;mean_p;var_t;var_p;cov_pt;frac_female_survive;frac_male_survive"
+    data_file 
+        << "generation" << ";" 
+        << "time_of_season" << ";"
+        << "mean_a_resource" << ";"
+        << "var_a_resource" << ";"
+        << "mean_b_resource" << ";"
+        << "var_b_resource" << ";"
+        << "mean_a_t" << ";"
+        << "var_a_t" << ";"
+        << "mean_b_t" << ";"
+        << "var_b_t" << ";"
+        << "mean_a_qown" << ";"
+        << "var_a_qown" << ";"
+        << "mean_b_qown" << ";"
+        << "var_b_qown" << ";" 
+        << "mean_a_qother" << ";"
+        << "var_a_qother" << ";"
+        << "mean_b_qother" << ";"
+        << "var_b_qother" << ";" 
+        << "mean_a_action_other" << ";"
+        << "var_a_action_other" << ";"
+        << "mean_b_action_other" << ";"
+        << "var_b_action_other" << ";" 
+        << "mean_n_per_group" << ";" 
         << std::endl;
 } // end write_data_headers()
 
@@ -286,6 +481,41 @@ void Simulation::write_parameters()
         << "seed;" << seed << ";" << std::endl
         << "n_group;" << par.n_group << ";" << std::endl
         << "init_n_per_group;" << par.init_n_per_group << ";" << std::endl
-        << "max_generation;" << par.max_generation << ";" << std::endl;
-
+        << "pr_single;" << par.pr_single << ";" << std::endl
+        << "max_generation;" << par.max_generation << ";" << std::endl
+        << "max_time_season;" << par.max_time_season << ";" << std::endl
+        << "data_print_interval;" << par.data_print_interval << ";" << std::endl
+        << "max_resources;" << par.max_resources << ";" << std::endl
+        << "epsilon;" << par.epsilon << ";" << std::endl
+        << "init_resources;" << par.init_resources << ";" << std::endl
+        << "nest_pred_scale;" << par.nest_pred_scale << ";" << std::endl
+        << "nest_pred_baseline;" << par.nest_pred_baseline << ";" << std::endl
+        << "ac;" << par.ac << ";" << std::endl
+        << "R;" << par.R << ";" << std::endl
+        << "mu_a_resource;" << par.mu_a_resource << ";" << std::endl
+        << "mu_b_resource;" << par.mu_b_resource << ";" << std::endl
+        << "a_resource_init;" << par.a_resource_init<< ";" << std::endl
+        << "b_resource_init;" << par.a_resource_init << ";" << std::endl
+        << "mu_a_t;" << par.mu_a_t << ";" << std::endl
+        << "mu_b_t;" << par.mu_b_t << ";" << std::endl
+        << "a_t_init;" << par.a_t_init<< ";" << std::endl
+        << "b_t_init;" << par.a_t_init << ";" << std::endl
+        << "mu_a_qown;" << par.mu_a_qown << ";" << std::endl
+        << "mu_b_qown;" << par.mu_b_qown << ";" << std::endl
+        << "a_qown_init;" << par.a_qown_init<< ";" << std::endl
+        << "b_qown_init;" << par.a_qown_init << ";" << std::endl
+        << "mu_a_qother;" << par.mu_a_qother << ";" << std::endl
+        << "mu_b_qother;" << par.mu_b_qother << ";" << std::endl
+        << "a_qother_init;" << par.a_qother_init<< ";" << std::endl
+        << "b_qother_init;" << par.a_qother_init << ";" << std::endl
+        << "mu_a_action_other;" << par.mu_a_action_other << ";" << std::endl
+        << "mu_b_action_other;" << par.mu_b_action_other << ";" << std::endl
+        << "a_action_other_init;" << par.a_action_other_init<< ";" << std::endl
+        << "b_action_other_init;" << par.a_action_other_init << ";" << std::endl
+        << "logistic_min_bound;" << par.logistic_min_bound << ";" << std::endl
+        << "logistic_max_bound;" << par.logistic_max_bound << ";" << std::endl
+        << "sdmu;" << par.sdmu << ";" << std::endl
+        << "p_high_quality;" << par.p_high_quality << ";" << std::endl
+        << "init_p_group;" << par.init_p_group << ";" << std::endl
+    ;
 } // end write_parameters

@@ -15,7 +15,7 @@ class Group
 
         // initiation constructor
         Group(
-                int const nmembers, 
+                unsigned const nmembers, 
                 Parameters const &params
                 );
 
