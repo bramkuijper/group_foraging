@@ -52,7 +52,7 @@ class Parameters
         // slope of the foraging success function
         double epsilon{1.0};
 
-        double init_resources{0.0};
+        double init_resources{4.0};
 
         // range in the [0,1] probability space that
         // affects nest predation: if nest_pred_scale = 1
