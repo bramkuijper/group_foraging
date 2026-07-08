@@ -12,8 +12,9 @@ Simulation::Simulation(Parameters const &params) :
     par{params}, // copy over the parameters
     data_file{par.file_name}, // initialize the data file to write output to
     uniform{0.0,1.0}, // initialize the uniform distribution 
-    metapopulation{par.n_group, 
-        Group(par.init_n_per_group, params)} // initialize all males
+    metapopulation(par.n_group, 
+        Group(par.init_n_per_group, params)), // initialize all individuals
+    p_nest_predation(par.init_n_per_group + 1, 0.0) // 0, 1, ..., n individuals that can stay home
 {}
 
 
@@ -107,6 +108,7 @@ void Simulation::forage(unsigned const t)
             } // 
         } // end for individual_idx
 
+        // spend resources on growth
         group_iter->resources -= par.ac;
    
         // now update resources for this group
@@ -117,29 +119,35 @@ void Simulation::forage(unsigned const t)
         } 
 
         assert(group_size >= n_foraging);
+            
+//        std::cout << "group size: " << group_size 
+//                << " n forage: " << n_foraging 
+//                << " group size min forage: " << (group_size - n_foraging) 
+//                << " nest pred size: " << p_nest_predation.size() << " " << std::endl;
 
         // calculate predation of the nest
         if (uniform(rng_r) < 
                 p_nest_predation[group_size - n_foraging])
         {
             // group dead
-            group_iter->resources = -10000; 
+            group_iter->resources = 0;
         }
 
-        std::cout << t << " " << group_ctr_test 
-            << " " << group_size 
-            << " " << n_foraging
-            << " " << group_iter->resources << std::endl;
+//        std::cout << "forage(), t: " << t << " ctr_test: " << group_ctr_test 
+//            << " size: " << group_size 
+//            << " n_forage: " << n_foraging
+//            << " resource: " << group_iter->resources << std::endl;
 
         ++group_ctr_test;
     } // end for group
 } // end forage()
 
+
 // calculate survival rate of the nest
 // in the presence of n_defenders
 void Simulation::init_nest_predation()
 {
-    for (unsigned n_idx{0}; n_idx < par.n_group; ++n_idx)
+    for (unsigned n_idx{0}; n_idx <= par.n_group; ++n_idx)
     {
         p_nest_predation[n_idx] = par.nest_pred_baseline 
             + par.nest_pred_scale * 
@@ -198,12 +206,10 @@ void Simulation::reproduce()
             group_idx < metapopulation.size();
             ++group_idx)
     {
-        reproduction_vector.push_back(metapopulation[group_idx].resources);
-
+        reproduction_vector.push_back(std::exp(metapopulation[group_idx].resources));
+ 
         sum_resources += metapopulation[group_idx].resources;
     } // end for group_idx
-
-    assert(sum_resources > 0.0); 
 
     std::discrete_distribution group_reproduction_sampler(
             reproduction_vector.begin(),
