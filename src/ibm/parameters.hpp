@@ -112,7 +112,7 @@ class Parameters
 
         // boundaries for the logistic
         double logistic_min_bound{-10.0};
-        double logistic_max_bound{-10.0};
+        double logistic_max_bound{10.0};
 
         // standard deviation of mutational effect size
         double sdmu{0.02};

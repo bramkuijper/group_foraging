@@ -219,7 +219,7 @@ void Simulation::reproduce()
     unsigned int parent_idx;
 
     std::uniform_int_distribution <unsigned> 
-        parent_sampler{0, par.init_n_per_group};
+        parent_sampler{0, par.init_n_per_group - 1};
 
     // TODO: allow for linear increases in offspring production
     // see Field et al 2000 Nature --
@@ -234,6 +234,11 @@ void Simulation::reproduce()
     {
         target_group_size = uniform(rng_r) < par.pr_single ?
             1 : par.init_n_per_group;
+        
+        // remove any pre-existing juveniles in this group
+        // which are basically left over from recruitment from
+        // previous generations
+        group_iter->juveniles.clear();
 
         for (unsigned newborn_idx{0};
                 newborn_idx < target_group_size;
@@ -245,16 +250,11 @@ void Simulation::reproduce()
             // unless group size > 1
             parent_idx = 0;
 
-            if (group_iter->members.size() == 
+            if (metapopulation[group_origin_idx].members.size() ==
                     par.init_n_per_group)
             {
                 parent_idx = parent_sampler(rng_r);
             }
-
-            // remove any pre-existing juveniles in this group
-            // which are basically left over from recruitment from
-            // previous generations
-            group_iter->juveniles.clear();
 
             group_iter->juveniles.push_back(
                     Individual(
@@ -316,10 +316,17 @@ void Simulation::write_data()
 
     unsigned n{0};
 
+    double mean_resources{0.0};
+    double ss_resources{0.0};
+
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
             ++group_iter)
     {
+        x = group_iter->resources;
+        mean_resources += x;
+        ss_resources += x * x;
+
         for (auto individual_iter{group_iter->members.begin()};
                 individual_iter != group_iter->members.end();
                 ++individual_iter)
@@ -423,8 +430,12 @@ void Simulation::write_data()
     double var_b_action_other{ss_b_action_other / n -
         mean_b_action_other * mean_b_action_other};
 
-
     double mean_n_per_group = static_cast<double>(n) / metapopulation.size();
+
+    mean_resources /= metapopulation.size();
+
+    double var_resources = ss_resources / metapopulation.size() - 
+        mean_resources * mean_resources;
 
     data_file << generation << ";" 
         << time_of_season << ";"
@@ -449,6 +460,8 @@ void Simulation::write_data()
         << mean_b_action_other << ";"
         << var_b_action_other << ";" 
         << mean_n_per_group << ";" 
+        << mean_resources  << ";" 
+        << var_resources  << ";" 
         << std::endl;
 } // end write_data()
 
@@ -478,7 +491,10 @@ void Simulation::write_data_headers()
         << "mean_b_action_other" << ";"
         << "var_b_action_other" << ";" 
         << "mean_n_per_group" << ";" 
+        << "mean_resources" << ";" 
+        << "var_resources" << ";" 
         << std::endl;
+
 } // end write_data_headers()
 
 void Simulation::write_parameters()
