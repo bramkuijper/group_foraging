@@ -39,6 +39,7 @@ void Simulation::calculate_across_season_stats()
         var_nests_predated_per_timestep/ total_group_time - 
         mean_nests_predated_per_timestep * mean_nests_predated_per_timestep;
 
+
     mean_foraging_per_group /= total_group_time;
 
     var_foraging_per_group = var_foraging_per_group / total_group_time - 
@@ -199,6 +200,7 @@ void Simulation::run()
             forage(time_of_season);
         }
 
+        calculate_across_season_stats();
         // replace the current generation
         reproduce();
 

@@ -12,6 +12,7 @@ sim_counter = 0
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
 p_high_quality = [0.5]
+max_gen = 50000
 
 exe = "./group_foraging_ibm.exe"
 
@@ -26,7 +27,8 @@ for i in range(0, nrep):
                       f"{output_file} " +
                       f"{mu_a_resource_i} " + 
                       f"{mu_b_resource_i} " + 
-                      f"{p_high_quality_i} ") 
+                      f"{p_high_quality_i} " + 
+                      f"{max_gen} ") 
 
 
     
