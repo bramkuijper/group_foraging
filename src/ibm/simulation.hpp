@@ -45,6 +45,26 @@ class Simulation
         unsigned int generation{0};
         unsigned int time_of_season{0};
 
+        // some statistics
+        //
+        // average number of nests predated per time step
+        // across a season
+        double mean_nests_predated_per_timestep{0.0};
+
+        // sum squares in the number of nests predated per time step
+        // across a season
+        double var_nests_predated_per_timestep{0.0};
+
+        // total count of nests predated over a season
+        unsigned total_nests_predated_season{0};
+        
+        // mean number of foragers per group
+        double mean_foraging_per_group{0.0};
+        
+        // sum of squares in number of foragers per group
+        double var_foraging_per_group{0.0};
+        
+
         void reproduce();
         void write_data();
         void write_parameters();
@@ -54,6 +74,8 @@ class Simulation
         void learn();
 
         void init_nest_predation();
+        void reset_across_season_stats();
+        void calculate_across_season_stats();
 
     public:
         // initialize the simulation

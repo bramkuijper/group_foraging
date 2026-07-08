@@ -9,8 +9,8 @@ nrep = 3
 
 sim_counter = 0
 
-mu_a_resource = [0.01]
-mu_b_resource = [0.01]
+mu_a_resource = [0.05]
+mu_b_resource = [0.05]
 p_high_quality = [0.5]
 
 exe = "./group_foraging_ibm.exe"

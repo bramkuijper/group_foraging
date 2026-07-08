@@ -31,7 +31,7 @@ class Parameters
 {
     public:
         // population size, which should be even number
-        unsigned int n_group{500};
+        unsigned int n_group{2500};
         unsigned int init_n_per_group{2};
 
         // probability of having a group with a single individual

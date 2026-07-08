@@ -17,6 +17,34 @@ Simulation::Simulation(Parameters const &params) :
     p_nest_predation(par.init_n_per_group + 1, 0.0) // 0, 1, ..., n individuals that can stay home
 {}
 
+void Simulation::reset_across_season_stats()
+{
+    // reset all the stats
+    mean_nests_predated_per_timestep = 0.0;
+    var_nests_predated_per_timestep = 0.0;
+    mean_foraging_per_group = 0.0;
+    var_foraging_per_group = 0.0;
+
+    total_nests_predated_season = 0;
+}
+
+void Simulation::calculate_across_season_stats()
+{
+    // calculate total time steps across all groups
+    // as this is what averages will be based on
+    unsigned total_group_time{par.max_time_season * par.n_group};
+
+    mean_nests_predated_per_timestep /= total_group_time;
+    var_nests_predated_per_timestep = 
+        var_nests_predated_per_timestep/ total_group_time - 
+        mean_nests_predated_per_timestep * mean_nests_predated_per_timestep;
+
+    mean_foraging_per_group /= total_group_time;
+
+    var_foraging_per_group = var_foraging_per_group / total_group_time - 
+        mean_foraging_per_group *  mean_foraging_per_group;
+} // end calculate_across_season_stats
+
 
 void Simulation::forage(unsigned const t)
 {
@@ -32,14 +60,9 @@ void Simulation::forage(unsigned const t)
     // track of this individual's quality
     bool quality{};
 
-    // keep track of the new resources
-    double new_group_resources{};
-
     double sum_quality_group{};
 
     unsigned n_foraging{};
-
-    unsigned group_ctr_test{0};
 
     // go through all groups
     for (auto group_iter{metapopulation.begin()};
@@ -49,7 +72,6 @@ void Simulation::forage(unsigned const t)
         group_size = static_cast<unsigned>(group_iter->members.size());
 
         // reset stats 
-        new_group_resources = 0.0;
         average_action_previous_others = 0.0;
         average_quality_others = 0.0;
         sum_quality_group = 0.0;
@@ -104,7 +126,8 @@ void Simulation::forage(unsigned const t)
                 sum_quality_group += quality;
                 ++n_foraging;
 
-
+                ++mean_foraging_per_group;
+                ++var_foraging_per_group;
             } // 
         } // end for individual_idx
 
@@ -131,14 +154,9 @@ void Simulation::forage(unsigned const t)
         {
             // group dead
             group_iter->resources = 0;
+
+            ++total_nests_predated_season;
         }
-
-//        std::cout << "forage(), t: " << t << " ctr_test: " << group_ctr_test 
-//            << " size: " << group_size 
-//            << " n_forage: " << n_foraging
-//            << " resource: " << group_iter->resources << std::endl;
-
-        ++group_ctr_test;
     } // end for group
 } // end forage()
 
@@ -172,6 +190,8 @@ void Simulation::run()
             group_iter->resources = 0.0;
         }
 
+        reset_across_season_stats();
+
         for (time_of_season = 0;
                 time_of_season <= par.max_time_season;
                 ++time_of_season)
@@ -179,14 +199,14 @@ void Simulation::run()
             forage(time_of_season);
         }
 
+        // replace the current generation
+        reproduce();
+
         // write statistics to file
         if (generation % par.data_print_interval == 0)
         {
             write_data();
         }
-
-        // replace the current generation
-        reproduce();
 
     } // end for unsigned int generation
    
@@ -200,15 +220,11 @@ void Simulation::reproduce()
 {
     std::vector <double> reproduction_vector{};
 
-    double sum_resources{0.0};
-
     for (unsigned int group_idx{0};
             group_idx < metapopulation.size();
             ++group_idx)
     {
         reproduction_vector.push_back(std::exp(metapopulation[group_idx].resources));
- 
-        sum_resources += metapopulation[group_idx].resources;
     } // end for group_idx
 
     std::discrete_distribution group_reproduction_sampler(
@@ -462,6 +478,11 @@ void Simulation::write_data()
         << mean_n_per_group << ";" 
         << mean_resources  << ";" 
         << var_resources  << ";" 
+        << mean_foraging_per_group << ";"
+        << var_foraging_per_group << ";"
+        << mean_nests_predated_per_timestep << ";"
+        << var_nests_predated_per_timestep << ";"
+        << total_nests_predated_season << ";"
         << std::endl;
 } // end write_data()
 
@@ -493,6 +514,11 @@ void Simulation::write_data_headers()
         << "mean_n_per_group" << ";" 
         << "mean_resources" << ";" 
         << "var_resources" << ";" 
+        << "mean_foraging_per_group" << ";"
+        << "var_foraging_per_group" << ";"
+        << "mean_nests_predated_per_timestep" << ";"
+        << "var_nests_predated_per_timestep" << ";"
+        << "total_nests_predated_season" << ";"
         << std::endl;
 
 } // end write_data_headers()

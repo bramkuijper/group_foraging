@@ -50,7 +50,19 @@ jsonstuff <- '[
     },
     {
         "xvar" : "generation",
-        "yvar" : "var_resources"
+        "yvar" : ["var_resources","var_foraging_per_group","var_nests_predated_per_timestep"]
+    },
+    {
+        "xvar" : "generation",
+        "yvar" : "total_nests_predated_season"
+    },
+    {
+        "xvar" : "generation",
+        "yvar" : "mean_nests_predated_per_timestep"
+    },
+    {
+        "xvar" : "generation",
+        "yvar" : "mean_foraging_per_group"
     }
 ]
 '
