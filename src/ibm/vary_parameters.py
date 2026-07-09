@@ -5,20 +5,20 @@ base_name = "sim_group_forage_"
 current_time = dt.datetime.now()
 base_name += current_time.strftime("%Y%m%d_%H%M%S")
 
-nrep = 3
+nrep = 6
 
 sim_counter = 0
 
-mu_a_resource = [0,0.05]
-mu_b_resource = [0,0.05]
-mu_a_t = [0,0.05]
-mu_b_t = [0,0.05]
-mu_a_qown = [0,0.05]
-mu_b_qown = [0,0.05]
-mu_a_qother = [0,0.05]
-mu_b_qother = [0,0.05]
-mu_a_action_other = [0,0.05]
-mu_b_action_other = [0,0.05]
+mu_a_resource = [0.05]
+mu_b_resource = [0.05]
+mu_a_t = [0.05]
+mu_b_t = [0.05]
+mu_a_qown = [0.05]
+mu_b_qown = [0.05]
+mu_a_qother = [0.05]
+mu_b_qother = [0.05]
+mu_a_action_other = [0.05]
+mu_b_action_other = [0.05]
 
 p_high_quality = [0.5]
 max_gen = 50000

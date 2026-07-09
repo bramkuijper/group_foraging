@@ -93,29 +93,34 @@ void Simulation::forage(unsigned const t)
                 individual_idx < group_size;
                 ++individual_idx)
         {
-            for (unsigned int individual2_idx{0};
-                    individual2_idx < group_size;
-                    ++individual2_idx)
+            // only makes sense to calculate av action others 
+            // once we have a good idea about
+            if (t > 0) 
             {
-                // if this individual is the same as the focal 
-                // ignore the remainder as those pertain to stats
-                // from others in the group
-                if (individual_idx == individual2_idx)
+                for (unsigned int individual2_idx{0};
+                        individual2_idx < group_size;
+                        ++individual2_idx)
                 {
-                    continue;
+                    // if this individual is the same as the focal 
+                    // ignore the remainder as those pertain to stats
+                    // from others in the group
+                    if (individual_idx == individual2_idx)
+                    {
+                        continue;
+                    }
+
+                    average_action_previous_others += 
+                        group_iter->members[individual2_idx].foraging_previous;
+
+                    average_quality_others += 
+                        group_iter->members[individual2_idx].quality;
+                } // end for individual2
+       
+                if (group_size > 1)
+                {
+                    average_action_previous_others /= group_size - 1;
+                    average_quality_others /= group_size - 1;
                 }
-
-                average_action_previous_others += 
-                    group_iter->members[individual2_idx].foraging_previous;
-
-                average_quality_others += 
-                    group_iter->members[individual2_idx].quality;
-            } // end for individual2
-   
-            if (group_size > 1)
-            {
-                average_action_previous_others /= group_size - 1;
-                average_quality_others /= group_size - 1;
             }
             
             quality = group_iter->members[individual_idx].quality;
