@@ -40,6 +40,18 @@ jsonstuff <- '[
     {"xvar" : "generation",
         "yvar" : ["mean_a_resource","mean_b_resource"]
     },
+    {"xvar" : "generation",
+        "yvar" : ["mean_a_t","mean_b_t"]
+    },
+    {"xvar" : "generation",
+        "yvar" : ["mean_a_qown","mean_b_qown"]
+    },
+    {"xvar" : "generation",
+        "yvar" : ["mean_a_qother","mean_b_qother"]
+    },
+    {"xvar" : "generation",
+        "yvar" : ["mean_a_action_other","mean_b_action_other"]
+    },
     {
         "xvar" : "generation",
         "yvar" : "mean_n_per_group"
@@ -50,15 +62,11 @@ jsonstuff <- '[
     },
     {
         "xvar" : "generation",
-        "yvar" : ["var_resources","var_foraging_per_group","var_nests_predated_per_timestep"]
+        "yvar" : "var_resources"
     },
     {
         "xvar" : "generation",
         "yvar" : "total_nests_predated_season"
-    },
-    {
-        "xvar" : "generation",
-        "yvar" : "mean_nests_predated_per_timestep"
     },
     {
         "xvar" : "generation",

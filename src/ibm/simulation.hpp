@@ -61,10 +61,6 @@ class Simulation
         // mean number of foragers per group
         double mean_foraging_per_group{0.0};
         
-        // sum of squares in number of foragers per group
-        double var_foraging_per_group{0.0};
-        
-
         void reproduce();
         void write_data();
         void write_parameters();

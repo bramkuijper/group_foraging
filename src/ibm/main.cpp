@@ -18,7 +18,10 @@ int main(int argc, char **argv)
     params.mu_a_action_other = std::stod(argv[10]); 
     params.mu_b_action_other = std::stod(argv[11]); 
     params.p_high_quality = std::stod(argv[12]); 
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[13]));
+    params.init_resources = std::stod(argv[13]); 
+    params.nest_pred_baseline = std::stod(argv[14]); 
+    params.nest_pred_scale = std::stod(argv[15]); 
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[16]));
 
     Simulation sim{params};
 

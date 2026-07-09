@@ -31,7 +31,7 @@ class Parameters
 {
     public:
         // population size, which should be even number
-        unsigned int n_group{2500};
+        unsigned int n_group{2000};
         unsigned int init_n_per_group{2};
 
         // probability of having a group with a single individual
@@ -52,7 +52,7 @@ class Parameters
         // slope of the foraging success function
         double epsilon{1.0};
 
-        double init_resources{4.0};
+        double init_resources{10.0};
 
         // range in the [0,1] probability space that
         // affects nest predation: if nest_pred_scale = 1
