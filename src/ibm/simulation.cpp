@@ -15,7 +15,9 @@ Simulation::Simulation(Parameters const &params) :
     metapopulation(par.n_group, 
         Group(par.init_n_per_group, params)), // initialize all individuals
     p_nest_predation(par.init_n_per_group + 1, 0.0) // 0, 1, ..., n individuals that can stay home
-{}
+{
+    init_nest_predation();
+}
 
 void Simulation::reset_across_season_stats()
 {
@@ -70,9 +72,15 @@ void Simulation::forage(unsigned const t)
             group_iter != metapopulation.end();
             ++group_iter)
     {
+        // ok group is dead
+        if (group_iter->group_is_dead)
+        {
+            continue;
+        }
+
         group_size = static_cast<unsigned>(group_iter->members.size());
 
-        // reset stats 
+        // reset stats  for each group
         average_action_previous_others = 0.0;
         average_quality_others = 0.0;
         sum_quality_group = 0.0;
@@ -98,7 +106,7 @@ void Simulation::forage(unsigned const t)
                 }
 
                 average_action_previous_others += 
-                    group_iter->members[individual2_idx].action_previous;
+                    group_iter->members[individual2_idx].foraging_previous;
 
                 average_quality_others += 
                     group_iter->members[individual2_idx].quality;
@@ -118,8 +126,7 @@ void Simulation::forage(unsigned const t)
                 static_cast<double>(t) / par.max_time_season,
                 static_cast<double>(quality),
                 average_quality_others,
-                average_action_previous_others
-                    );
+                average_action_previous_others);
 
             // ok individual goes out to forage
             if (uniform(rng_r) < p_forage)
@@ -129,7 +136,13 @@ void Simulation::forage(unsigned const t)
 
                 ++mean_foraging_per_group;
                 ++var_foraging_per_group;
-            } // 
+
+                group_iter->members[individual_idx].foraging_current = true;
+            } 
+            else
+            {
+                group_iter->members[individual_idx].foraging_current = false;
+            }
         } // end for individual_idx
 
         // spend resources on growth
@@ -155,8 +168,18 @@ void Simulation::forage(unsigned const t)
         {
             // group dead
             group_iter->resources = 0;
+            group_iter->group_is_dead = 0;
 
             ++total_nests_predated_season;
+        }
+
+        // now that decisions have been made let's update action previous
+        for (unsigned int individual_idx{0};
+                individual_idx < group_size;
+                ++individual_idx)
+        {
+            group_iter->members[individual_idx].foraging_previous = 
+                group_iter->members[individual_idx].foraging_current;
         }
     } // end for group
 } // end forage()
@@ -184,11 +207,13 @@ void Simulation::run()
             ++generation)
     {
         // start with 0 resources
+        // and also all groups are alive
         for (auto group_iter{metapopulation.begin()};
                 group_iter != metapopulation.end();
                 ++group_iter)
         {
-            group_iter->resources = 0.0;
+            group_iter->resources = par.init_resources;
+            group_iter->group_is_dead = false;
         }
 
         reset_across_season_stats();
@@ -229,7 +254,7 @@ void Simulation::reproduce()
         reproduction_vector.push_back(std::exp(metapopulation[group_idx].resources));
     } // end for group_idx
 
-    std::discrete_distribution group_reproduction_sampler(
+    std::discrete_distribution <unsigned> group_reproduction_sampler(
             reproduction_vector.begin(),
             reproduction_vector.end());
 
@@ -336,6 +361,9 @@ void Simulation::write_data()
 
     double mean_resources{0.0};
     double ss_resources{0.0};
+
+    // aux variable to make n_group count in terms of double
+    double d_n_metapops{static_cast<double>(metapopulation.size())};
 
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
@@ -448,11 +476,11 @@ void Simulation::write_data()
     double var_b_action_other{ss_b_action_other / n -
         mean_b_action_other * mean_b_action_other};
 
-    double mean_n_per_group = static_cast<double>(n) / metapopulation.size();
+    double mean_n_per_group = static_cast<double>(n) / d_n_metapops;
 
-    mean_resources /= metapopulation.size();
+    mean_resources /= d_n_metapops;
 
-    double var_resources = ss_resources / metapopulation.size() - 
+    double var_resources = ss_resources / d_n_metapops - 
         mean_resources * mean_resources;
 
     data_file << generation << ";" 

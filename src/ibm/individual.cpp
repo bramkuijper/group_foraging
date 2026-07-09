@@ -28,7 +28,8 @@ Individual::Individual(Individual const &other) :
     a_action_other{other.a_action_other[0],other.a_action_other[1]},
     b_action_other{other.b_action_other[0],other.b_action_other[1]},
     quality{other.quality},
-    action_previous{other.action_previous}
+    foraging_previous{other.foraging_previous},
+    foraging_current{other.foraging_current}
 {}
 
 // calculate probability an 
@@ -252,5 +253,6 @@ void Individual::operator=(Individual const &other)
     }
 
     quality = other.quality;
-    action_previous = other.action_previous;
+    foraging_previous = other.foraging_previous;
+    foraging_current = other.foraging_current;
 } 

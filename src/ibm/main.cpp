@@ -9,8 +9,16 @@ int main(int argc, char **argv)
     params.file_name = argv[1]; 
     params.mu_a_resource = std::stod(argv[2]); 
     params.mu_b_resource = std::stod(argv[3]); 
-    params.p_high_quality = std::stod(argv[4]); 
-    params.max_generation = std::stoul(argv[5]);
+    params.mu_a_t = std::stod(argv[4]); 
+    params.mu_b_t = std::stod(argv[5]); 
+    params.mu_a_qown = std::stod(argv[6]); 
+    params.mu_b_qown = std::stod(argv[7]); 
+    params.mu_a_qother = std::stod(argv[8]); 
+    params.mu_b_qother = std::stod(argv[9]); 
+    params.mu_a_action_other = std::stod(argv[10]); 
+    params.mu_b_action_other = std::stod(argv[11]); 
+    params.p_high_quality = std::stod(argv[12]); 
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[13]));
 
     Simulation sim{params};
 

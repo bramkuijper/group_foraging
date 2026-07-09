@@ -38,7 +38,8 @@ class Individual
         // an individual's own quality
         bool quality{false};
 
-        bool action_previous{false}; 
+        bool foraging_previous{false}; 
+        bool foraging_current{false}; 
 
         // default constructor, used when we initialize
         // the simulation at t = 0
