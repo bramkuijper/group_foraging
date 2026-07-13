@@ -45,6 +45,7 @@ void Simulation::calculate_across_season_stats()
 } // end calculate_across_season_stats
 
 
+// forage (or not) for resources
 void Simulation::forage(unsigned const t)
 {
     unsigned group_size;
@@ -89,8 +90,16 @@ void Simulation::forage(unsigned const t)
                 individual_idx < group_size;
                 ++individual_idx)
         {
-            // only makes sense to calculate av action others 
-            // once we have a good idea about
+            // look at actions of other individuals
+            // however, we can only do this when looking
+            // at the previous time step. If we would do this
+            // at the current time step then who would
+            // know the information first and how would 
+            // individuals respond to this??
+            // 
+            // Given that individuals thus consider the
+            // action at the previous time step
+            // this only works when t > 0
             if (t > 0) 
             {
                 for (unsigned int individual2_idx{0};
@@ -137,6 +146,11 @@ void Simulation::forage(unsigned const t)
                 ++mean_foraging_per_group;
 
                 group_iter->members[individual_idx].foraging_current = true;
+
+//                // now build in predation while foraging
+//                if (
+//
+//
             } 
             else
             {
@@ -146,14 +160,19 @@ void Simulation::forage(unsigned const t)
 
         // spend resources on growth
         group_iter->resources -= par.ac;
-   
+
         // now update resources for this group
         if (uniform(rng_r) < 
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
-            group_iter->resources += par.R / group_size;
+            // without group augmentation we have
+            //group_iter->resources += par.R / group_size;
+            //
+            // however with group augmentation we have
+            group_iter->resources += par.R; 
         } 
 
+        // restrict resources to max
         if (group_iter->resources > par.max_resources)
         {
             group_iter->resources = par.max_resources;
@@ -199,7 +218,7 @@ void Simulation::init_nest_predation()
     {
         p_nest_predation[n_foraging_idx] = par.nest_pred_baseline 
             + par.nest_pred_scale * 
-            static_cast<double>(n_foraging_idx) / par.n_group;
+            static_cast<double>(n_foraging_idx) / par.init_n_per_group;
     }
 }
 
@@ -211,7 +230,8 @@ void Simulation::run()
             generation <= par.max_generation; 
             ++generation)
     {
-        // start with 0 resources
+        // every generation start with an initial amount 
+        // of resources
         // and also all groups are alive
         for (auto group_iter{metapopulation.begin()};
                 group_iter != metapopulation.end();
@@ -221,6 +241,7 @@ void Simulation::run()
             group_iter->group_is_dead = false;
         }
 
+        // reset all the seasonal stats
         reset_across_season_stats();
 
         for (time_of_season = 0;
@@ -247,7 +268,7 @@ void Simulation::run()
 } // end run_simulation()
 
 
-
+// reproduction of each colony
 void Simulation::reproduce()
 {
     std::vector <double> reproduction_vector{};

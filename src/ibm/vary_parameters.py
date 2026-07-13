@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 import datetime as dt
+import numpy as np
 
 base_name = "sim_group_forage_"
 current_time = dt.datetime.now()
 base_name += current_time.strftime("%Y%m%d_%H%M%S")
 
-nrep = 6
+nrep = 3
 
 sim_counter = 0
 
 # resources at the start of the season
 init_resources = 10
 nest_pred_baseline = 0.0
-nest_pred_scale = [0.005,0.0]
+nest_pred_scale = list(np.linspace(0,0.8,10))
 
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
