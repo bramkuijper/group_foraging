@@ -218,7 +218,7 @@ void Simulation::init_nest_predation()
     {
         p_nest_predation[n_foraging_idx] = par.nest_pred_baseline 
             + par.nest_pred_scale * 
-            static_cast<double>(n_foraging_idx) / par.init_n_per_group;
+                static_cast<double>(n_foraging_idx) / par.init_n_per_group;
     }
 }
 
