@@ -52,6 +52,9 @@ class Parameters
         // slope of the foraging success function
         double epsilon{1.0};
 
+        // how quality affects foraging encounter rates
+        double quality_weighting[2]{0.1,0.9};
+
         double init_resources{10.0};
 
         // range in the [0,1] probability space that
@@ -59,7 +62,6 @@ class Parameters
         // then individuals with no helpers on the nest
         // undergo full predation
         double nest_pred_scale{0.8};
-
 
         // baseline level of predation of a nest, reflecting
         // predation risk when all helpers 
