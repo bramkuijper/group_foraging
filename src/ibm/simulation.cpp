@@ -141,7 +141,7 @@ void Simulation::forage(unsigned const t)
             // ok individual goes out to forage
             if (uniform(rng_r) < p_forage)
             {
-                sum_quality_group += quality;
+                sum_quality_group += par.quality_weighting[quality];
                 ++n_foraging;
                 ++mean_foraging_per_group;
 
@@ -614,6 +614,8 @@ void Simulation::write_parameters()
         << "logistic_max_bound;" << par.logistic_max_bound << ";" << std::endl
         << "sdmu;" << par.sdmu << ";" << std::endl
         << "p_high_quality;" << par.p_high_quality << ";" << std::endl
+        << "quality_weighting_low;" << par.quality_weighting[0] << ";" << std::endl
+        << "quality_weighting_hi;" << par.quality_weighting[1] << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
     ;
 } // end write_parameters
