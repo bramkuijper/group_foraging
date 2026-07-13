@@ -50,7 +50,7 @@ class Parameters
         double max_resources{30.0};
 
         // slope of the foraging success function
-        double epsilon{1.0};
+        double epsilon{3.0};
 
         double init_resources{10.0};
 
