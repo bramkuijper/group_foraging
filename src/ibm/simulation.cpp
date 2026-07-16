@@ -77,7 +77,6 @@ void Simulation::forage(
             group_iter != metapopulation.end();
             ++group_iter)
     {
-
         // ok group is dead
         if (group_iter->group_is_dead)
         {
@@ -230,6 +229,11 @@ void Simulation::forage(
 
             group_iter->group_is_dead = true;
             ++total_nests_predated_season;
+        } else if (group_iter->resources < 0)
+        {
+            assert(!group_iter->group_is_dead);
+            group_iter->group_is_dead = true;
+            group_iter->resources = 0;
         }
 
         // now that decisions have been made let's update action previous
@@ -244,7 +248,6 @@ void Simulation::forage(
                     << p_nest_predation[n_foraging] << ";"
                     << sum_quality_group << ";"
                     << group_iter->members[individual_idx].foraging_previous << ";"
-                    << group_iter->members[individual_idx].foraging_current << ";"
                     << std::endl;
             }
 
@@ -323,7 +326,7 @@ void Simulation::reproduce()
             group_idx < metapopulation.size();
             ++group_idx)
     {
-        reproduction_vector.push_back(std::exp(metapopulation[group_idx].resources));
+        reproduction_vector.push_back(exp(metapopulation[group_idx].resources));
     } // end for group_idx
 
     std::discrete_distribution <unsigned> group_reproduction_sampler(
@@ -336,11 +339,6 @@ void Simulation::reproduce()
     std::uniform_int_distribution <unsigned> 
         parent_sampler{0, par.init_n_per_group - 1};
 
-    // TODO: allow for linear increases in offspring production
-    // see Field et al 2000 Nature --
-    //
-    // reset after every t time steps
-    
     unsigned target_group_size{0};
 
     for (auto group_iter{metapopulation.begin()};
@@ -633,7 +631,6 @@ void Simulation::write_data_headers()
         << "p_nest_predatin" << ";"
         << "sum_quality_group" << ";"
         << "foraging_previous" << ";"
-        << "foraging_current" << ";" 
         << std::endl;
         
 

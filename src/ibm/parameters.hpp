@@ -50,7 +50,7 @@ class Parameters
         double max_resources{30.0};
 
         // slope of the foraging success function
-        double epsilon{1.0};
+        double epsilon{8.0};
 
         // how quality affects foraging encounter rates
         double quality_weighting[2]{0.1,0.9};
