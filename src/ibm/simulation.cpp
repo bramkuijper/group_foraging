@@ -1,6 +1,8 @@
 #include <cassert>
+#include <iterator>
 #include <random>
 #include <iostream>
+#include <sstream>
 #include "group.hpp"
 #include "simulation.hpp"
 
@@ -11,6 +13,7 @@ Simulation::Simulation(Parameters const &params) :
     rng_r{seed}, // now use the random seed to initialize a random number generator
     par{params}, // copy over the parameters
     data_file{par.file_name}, // initialize the data file to write output to
+    data_file_dynamics{par.file_name + "_dynamics"}, // initialize the data file to write output to
     uniform{0.0,1.0}, // initialize the uniform distribution 
     metapopulation(par.n_group, 
         Group(par.init_n_per_group, params)), // initialize all individuals
@@ -46,7 +49,9 @@ void Simulation::calculate_across_season_stats()
 
 
 // forage (or not) for resources
-void Simulation::forage(unsigned const t)
+void Simulation::forage(
+        unsigned const t,
+        bool const write_data_foraging)
 {
     unsigned group_size;
 
@@ -63,12 +68,16 @@ void Simulation::forage(unsigned const t)
     double sum_quality_group{};
 
     unsigned n_foraging{};
+    
+    std::vector <std::string> output_vector(
+            par.init_n_per_group, "");
 
     // go through all groups
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
             ++group_iter)
     {
+
         // ok group is dead
         if (group_iter->group_is_dead)
         {
@@ -77,11 +86,13 @@ void Simulation::forage(unsigned const t)
 
         group_size = static_cast<unsigned>(group_iter->members.size());
 
+
         // reset stats  for each group
         average_action_previous_others = 0.0;
         average_quality_others = 0.0;
         sum_quality_group = 0.0;
         n_foraging = 0;
+
 
         // cannot use iterators as we need to avoid
         // including the focal individual in calculating the 
@@ -156,6 +167,29 @@ void Simulation::forage(unsigned const t)
             {
                 group_iter->members[individual_idx].foraging_current = false;
             }
+
+            if (write_data_foraging)
+            {
+                std::stringstream output{};
+
+                // position in group
+                output 
+                    << generation << ";"
+                    << t << ";"
+                    << std::distance(
+                        std::begin(metapopulation),
+                        group_iter) << ";"
+                    << individual_idx << ";"
+                    << group_size << ";"
+                    << group_iter->resources / par.max_resources << ";"
+                    << quality << ";"
+                    << average_quality_others << ";"
+                    << average_action_previous_others << ";"
+                    << p_forage << ";"
+                    << group_iter->members[individual_idx].foraging_current << ";";
+
+                output_vector[individual_idx] = output.str();
+            }
         } // end for individual_idx
 
         // spend resources on growth
@@ -203,6 +237,17 @@ void Simulation::forage(unsigned const t)
                 individual_idx < group_size;
                 ++individual_idx)
         {
+            if (write_data_foraging)
+            {
+                data_file_dynamics << output_vector[individual_idx]
+                    << group_iter->group_is_dead << ";"
+                    << p_nest_predation[n_foraging] << ";"
+                    << sum_quality_group << ";"
+                    << group_iter->members[individual_idx].foraging_previous << ";"
+                    << group_iter->members[individual_idx].foraging_current << ";"
+                    << std::endl;
+            }
+
             group_iter->members[individual_idx].foraging_previous = 
                 group_iter->members[individual_idx].foraging_current;
         }
@@ -248,10 +293,11 @@ void Simulation::run()
                 time_of_season <= par.max_time_season;
                 ++time_of_season)
         {
-            forage(time_of_season);
+            forage(time_of_season, generation == par.max_generation);
         }
 
         calculate_across_season_stats();
+        
         // replace the current generation
         reproduce();
 
@@ -570,6 +616,26 @@ void Simulation::write_data_headers()
         << "mean_foraging_per_group" << ";"
         << "total_nests_predated_season" << ";"
         << std::endl;
+
+    data_file_dynamics 
+        << "generation" << ";"
+        << "t" << ";"
+        << "group_idx" << ";"
+        << "individual_idx" << ";"
+        << "group_size" << ";"
+        << "group_resources" << ";"
+        << "quality" << ";"
+        << "avg_quality_others" << ";"
+        << "avg_action_previous_others" << ";"
+        << "p_forage" << ";"
+        << "foraging_current" << ";"
+        << "group_dead" << ";"
+        << "p_nest_predatin" << ";"
+        << "sum_quality_group" << ";"
+        << "foraging_previous" << ";"
+        << "foraging_current" << ";" 
+        << std::endl;
+        
 
 } // end write_data_headers()
 

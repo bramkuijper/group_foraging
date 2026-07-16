@@ -27,7 +27,7 @@ mu_a_action_other = [0]
 mu_b_action_other = [0]
 
 p_high_quality = [0.5]
-max_gen = 50000
+max_gen = 50
 
 exe = "./group_foraging_ibm.exe"
 
