@@ -21,7 +21,8 @@ int main(int argc, char **argv)
     params.init_resources = std::stod(argv[13]); 
     params.nest_pred_baseline = std::stod(argv[14]); 
     params.nest_pred_scale = std::stod(argv[15]); 
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[16]));
+    params.epsilon = std::stod(argv[16]); 
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[17]));
 
     Simulation sim{params};
 

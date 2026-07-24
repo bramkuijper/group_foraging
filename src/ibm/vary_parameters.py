@@ -13,21 +13,23 @@ sim_counter = 0
 # resources at the start of the season
 init_resources = 10
 nest_pred_baseline = 0.0
-nest_pred_scale = list(np.linspace(0,0.1,10))
+nest_pred_scale = [0.1]
 
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
 mu_a_t = [0.05]
 mu_b_t = [0.05]
-mu_a_qown = [0]
-mu_b_qown = [0]
-mu_a_qother = [0]
-mu_b_qother = [0]
-mu_a_action_other = [0]
-mu_b_action_other = [0]
+mu_a_qown = [0.0]
+mu_b_qown = [0.0]
+mu_a_qother = [0.0]
+mu_b_qother = [0.0]
+mu_a_action_other = [0.0]
+mu_b_action_other = [0.0]
 
 p_high_quality = [0.5]
-max_gen = 50
+max_gen = 50000
+
+epsilon = 0.75
 
 exe = "./group_foraging_ibm.exe"
 
@@ -63,6 +65,7 @@ for i in range(0, nrep):
                                                           f"{init_resources} " + 
                                                           f"{nest_pred_baseline} " + 
                                                           f"{nest_pred_scale_i} " + 
+                                                          f"{epsilon} " + 
                                                           f"{max_gen} ") 
 
 

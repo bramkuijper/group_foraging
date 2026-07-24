@@ -71,6 +71,8 @@ void Simulation::forage(
     
     std::vector <std::string> output_vector(
             par.init_n_per_group, "");
+    
+    unsigned individual_idx_global{0};
 
     // go through all groups
     for (auto group_iter{metapopulation.begin()};
@@ -156,29 +158,39 @@ void Simulation::forage(
                 ++mean_foraging_per_group;
 
                 group_iter->members[individual_idx].foraging_current = true;
-
-//                // now build in predation while foraging
-//                if (
-//
-//
             } 
             else
             {
                 group_iter->members[individual_idx].foraging_current = false;
             }
 
+            if (par.forage_individually)
+            {
+                if (uniform(rng_r) < 1.0 - std::exp(
+                            -par.epsilon * quality))
+                {
+                    group_iter->resources += par.R;
+                }
+            }
+
+
+
             if (write_data_foraging)
             {
                 std::stringstream output{};
+
+                unsigned group_idx = static_cast<unsigned>(std::distance(
+                                        std::begin(metapopulation),
+                                        group_iter));
+
+                ++individual_idx_global;
 
                 // position in group
                 output 
                     << generation << ";"
                     << t << ";"
-                    << std::distance(
-                        std::begin(metapopulation),
-                        group_iter) << ";"
-                    << individual_idx << ";"
+                    << group_idx << ";"
+                    << individual_idx_global << ";"
                     << group_size << ";"
                     << group_iter->resources / par.max_resources << ";"
                     << quality << ";"
@@ -188,20 +200,16 @@ void Simulation::forage(
                     << group_iter->members[individual_idx].foraging_current << ";";
 
                 output_vector[individual_idx] = output.str();
-            }
+            } // end write_data_foraging
         } // end for individual_idx
 
         // spend resources on growth
         group_iter->resources -= par.ac;
 
         // now update resources for this group
-        if (uniform(rng_r) < 
+        if (!par.forage_individually && uniform(rng_r) < 
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
-            // without group augmentation we have
-            //group_iter->resources += par.R / group_size;
-            //
-            // however with group augmentation we have
             group_iter->resources += par.R; 
         } 
 

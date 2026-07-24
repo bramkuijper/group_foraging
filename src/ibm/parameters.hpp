@@ -122,6 +122,8 @@ class Parameters
         // quality variation
         double p_high_quality{0.5};
 
+        bool forage_individually{false};
+
         // initial value of joining a group
         double init_p_group{0.25};
 
