@@ -22,6 +22,7 @@ Simulation::Simulation(Parameters const &params) :
     init_nest_predation();
 }
 
+// reset the stats that are calculated over the season
 void Simulation::reset_across_season_stats()
 {
     // reset all the stats
@@ -39,6 +40,7 @@ void Simulation::calculate_across_season_stats()
     unsigned total_group_time{par.max_time_season * par.n_group};
 
     mean_nests_predated_per_timestep /= total_group_time;
+
     var_nests_predated_per_timestep = 
         var_nests_predated_per_timestep/ total_group_time - 
         mean_nests_predated_per_timestep * mean_nests_predated_per_timestep;
@@ -53,8 +55,10 @@ void Simulation::forage(
         unsigned const t,
         bool const write_data_foraging)
 {
+    // aux variable to record current group size
     unsigned group_size;
 
+    // aux variable to record whether individual forages or not
     double p_forage;
 
     // averages of other individuals
@@ -74,23 +78,24 @@ void Simulation::forage(
     
     unsigned individual_idx_global{0};
 
-    // go through all groups
+    // go through all groups and 
+    // have them forage or not
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
             ++group_iter)
     {
         // ok group is dead
+        // it does not forage anymore
         if (group_iter->group_is_dead)
         {
             continue;
         }
 
-        group_size = static_cast<unsigned>(group_iter->members.size());
+        // calculate current group size
+        group_size = static_cast<unsigned>(
+                group_iter->members.size());
 
 
-        // reset stats  for each group
-        average_action_previous_others = 0.0;
-        average_quality_others = 0.0;
         sum_quality_group = 0.0;
         n_foraging = 0;
 
@@ -102,6 +107,11 @@ void Simulation::forage(
                 individual_idx < group_size;
                 ++individual_idx)
         {
+            // reset stats that current individual
+            // perceives about others
+            average_action_previous_others = 0.0;
+            average_quality_others = 0.0;
+
             // look at actions of other individuals
             // however, we can only do this when looking
             // at the previous time step. If we would do this
@@ -158,19 +168,19 @@ void Simulation::forage(
                 ++mean_foraging_per_group;
 
                 group_iter->members[individual_idx].foraging_current = true;
+
+                if (par.forage_individually)
+                {
+                    if (uniform(rng_r) < 1.0 - std::exp(
+                                -par.epsilon * par.quality_weighting[quality]))
+                    {
+                        group_iter->resources += par.R;
+                    }
+                }
             } 
             else
             {
                 group_iter->members[individual_idx].foraging_current = false;
-            }
-
-            if (par.forage_individually)
-            {
-                if (uniform(rng_r) < 1.0 - std::exp(
-                            -par.epsilon * quality))
-                {
-                    group_iter->resources += par.R;
-                }
             }
 
 
@@ -687,6 +697,7 @@ void Simulation::write_parameters()
         << "p_high_quality;" << par.p_high_quality << ";" << std::endl
         << "quality_weighting_low;" << par.quality_weighting[0] << ";" << std::endl
         << "quality_weighting_hi;" << par.quality_weighting[1] << ";" << std::endl
+        << "forage_individually;" << par.forage_individually << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
     ;
 } // end write_parameters
