@@ -24,7 +24,7 @@ mu_b_qown = [0.05]
 mu_a_qother = [0.05]
 mu_b_qother = [0.05]
 mu_a_action_other = [0.05]
-mu_b_action_other = [0.005]
+mu_b_action_other = [0.05]
 
 p_high_quality = [0.5]
 max_gen = 50000
