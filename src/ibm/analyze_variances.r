@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
-
+library("tidyverse")
+library("lme4")
 # small script to extract means variances
 # at the end as well temporal stuff over time
 
@@ -23,11 +24,20 @@ ggplot(data = fx,
     geom_line(mapping = aes(group = group_idx),alpha = 0.1) +
     geom_jitter(width = 0.2, alpha = 0.1,height=0.05)
 
-# calculate numbers of individuals over time
-fx_summary <- fx %>% group_by(t) %>%
-    summarise(total = n())
+ggsave(filename=paste0(file,".pdf"))
 
-ggplot(data = fx_summary,
-       mapping = aes(x = t, y = total)) +
-    geom_line()
+# variance in resource levels over time
+obj <- lmer(formula = group_resources ~ 1 + (1|group_idx),
+        data = fx)
+
+print(obj)
+
+
+## calculate numbers of individuals over time
+#fx_summary <- fx %>% group_by(t) %>%
+#    summarise(total = n())
+#
+#ggplot(data = fx_summary,
+#       mapping = aes(x = t, y = total)) +
+#    geom_line()
 

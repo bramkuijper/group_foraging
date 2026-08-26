@@ -174,7 +174,7 @@ void Simulation::forage(
                     if (uniform(rng_r) < 1.0 - std::exp(
                                 -par.epsilon * par.quality_weighting[quality]))
                     {
-                        group_iter->resources += par.R;
+                        group_iter->resources += par.R + normal(rng_r) * par.var_R;
                     }
                 }
             } 
@@ -291,6 +291,8 @@ void Simulation::init_nest_predation()
 void Simulation::run()
 {
     write_data_headers();
+
+    par.var_R = par.var_R_start;
 
     for (generation = 0; 
             generation <= par.max_generation; 

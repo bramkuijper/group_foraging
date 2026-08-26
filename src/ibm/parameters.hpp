@@ -73,6 +73,10 @@ class Parameters
 
         // resources gained per time step when foraging
         double R{4.0};
+
+        double var_R_start{0.5};
+        double var_R_perturb{0.0};
+        double var_R{0.0};
         
         // mutation rates and initial values
 
