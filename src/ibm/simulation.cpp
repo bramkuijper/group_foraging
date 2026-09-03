@@ -1,6 +1,8 @@
 #include <cassert>
+#include <iterator>
 #include <random>
 #include <iostream>
+#include <sstream>
 #include "group.hpp"
 #include "simulation.hpp"
 
@@ -11,6 +13,7 @@ Simulation::Simulation(Parameters const &params) :
     rng_r{seed}, // now use the random seed to initialize a random number generator
     par{params}, // copy over the parameters
     data_file{par.file_name}, // initialize the data file to write output to
+    data_file_dynamics{par.file_name + "_dynamics"}, // initialize the data file to write output to
     uniform{0.0,1.0}, // initialize the uniform distribution 
     metapopulation(par.n_group, 
         Group(par.init_n_per_group, params)), // initialize all individuals
@@ -19,6 +22,7 @@ Simulation::Simulation(Parameters const &params) :
     init_nest_predation();
 }
 
+// reset the stats that are calculated over the season
 void Simulation::reset_across_season_stats()
 {
     // reset all the stats
@@ -36,6 +40,7 @@ void Simulation::calculate_across_season_stats()
     unsigned total_group_time{par.max_time_season * par.n_group};
 
     mean_nests_predated_per_timestep /= total_group_time;
+
     var_nests_predated_per_timestep = 
         var_nests_predated_per_timestep/ total_group_time - 
         mean_nests_predated_per_timestep * mean_nests_predated_per_timestep;
@@ -46,10 +51,14 @@ void Simulation::calculate_across_season_stats()
 
 
 // forage (or not) for resources
-void Simulation::forage(unsigned const t)
+void Simulation::forage(
+        unsigned const t,
+        bool const write_data_foraging)
 {
+    // aux variable to record current group size
     unsigned group_size;
 
+    // aux variable to record whether individual forages or not
     double p_forage;
 
     // averages of other individuals
@@ -63,25 +72,33 @@ void Simulation::forage(unsigned const t)
     double sum_quality_group{};
 
     unsigned n_foraging{};
+    
+    std::vector <std::string> output_vector(
+            par.init_n_per_group, "");
+    
+    unsigned individual_idx_global{0};
 
-    // go through all groups
+    // go through all groups and 
+    // have them forage or not
     for (auto group_iter{metapopulation.begin()};
             group_iter != metapopulation.end();
             ++group_iter)
     {
         // ok group is dead
+        // it does not forage anymore
         if (group_iter->group_is_dead)
         {
             continue;
         }
 
-        group_size = static_cast<unsigned>(group_iter->members.size());
+        // calculate current group size
+        group_size = static_cast<unsigned>(
+                group_iter->members.size());
 
-        // reset stats  for each group
-        average_action_previous_others = 0.0;
-        average_quality_others = 0.0;
+
         sum_quality_group = 0.0;
         n_foraging = 0;
+
 
         // cannot use iterators as we need to avoid
         // including the focal individual in calculating the 
@@ -90,6 +107,11 @@ void Simulation::forage(unsigned const t)
                 individual_idx < group_size;
                 ++individual_idx)
         {
+            // reset stats that current individual
+            // perceives about others
+            average_action_previous_others = 0.0;
+            average_quality_others = 0.0;
+
             // look at actions of other individuals
             // however, we can only do this when looking
             // at the previous time step. If we would do this
@@ -147,28 +169,57 @@ void Simulation::forage(unsigned const t)
 
                 group_iter->members[individual_idx].foraging_current = true;
 
-//                // now build in predation while foraging
-//                if (
-//
-//
+                if (par.forage_individually)
+                {
+                    if (uniform(rng_r) < 1.0 - std::exp(
+                                -par.epsilon * par.quality_weighting[quality]))
+                    {
+                        group_iter->resources += par.R + normal(rng_r) * par.var_R;
+                    }
+                }
             } 
             else
             {
                 group_iter->members[individual_idx].foraging_current = false;
             }
+
+
+
+            if (write_data_foraging)
+            {
+                std::stringstream output{};
+
+                unsigned group_idx = static_cast<unsigned>(std::distance(
+                                        std::begin(metapopulation),
+                                        group_iter));
+
+                ++individual_idx_global;
+
+                // position in group
+                output 
+                    << generation << ";"
+                    << t << ";"
+                    << group_idx << ";"
+                    << individual_idx_global << ";"
+                    << group_size << ";"
+                    << group_iter->resources / par.max_resources << ";"
+                    << quality << ";"
+                    << average_quality_others << ";"
+                    << average_action_previous_others << ";"
+                    << p_forage << ";"
+                    << group_iter->members[individual_idx].foraging_current << ";";
+
+                output_vector[individual_idx] = output.str();
+            } // end write_data_foraging
         } // end for individual_idx
 
         // spend resources on growth
         group_iter->resources -= par.ac;
 
         // now update resources for this group
-        if (uniform(rng_r) < 
+        if (!par.forage_individually && uniform(rng_r) < 
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
-            // without group augmentation we have
-            //group_iter->resources += par.R / group_size;
-            //
-            // however with group augmentation we have
             group_iter->resources += par.R; 
         } 
 
@@ -196,6 +247,11 @@ void Simulation::forage(unsigned const t)
 
             group_iter->group_is_dead = true;
             ++total_nests_predated_season;
+        } else if (group_iter->resources < 0)
+        {
+            assert(!group_iter->group_is_dead);
+            group_iter->group_is_dead = true;
+            group_iter->resources = 0;
         }
 
         // now that decisions have been made let's update action previous
@@ -203,6 +259,16 @@ void Simulation::forage(unsigned const t)
                 individual_idx < group_size;
                 ++individual_idx)
         {
+            if (write_data_foraging)
+            {
+                data_file_dynamics << output_vector[individual_idx]
+                    << group_iter->group_is_dead << ";"
+                    << p_nest_predation[n_foraging] << ";"
+                    << sum_quality_group << ";"
+                    << group_iter->members[individual_idx].foraging_previous << ";"
+                    << std::endl;
+            }
+
             group_iter->members[individual_idx].foraging_previous = 
                 group_iter->members[individual_idx].foraging_current;
         }
@@ -226,6 +292,8 @@ void Simulation::run()
 {
     write_data_headers();
 
+    par.var_R = par.var_R_start;
+
     for (generation = 0; 
             generation <= par.max_generation; 
             ++generation)
@@ -248,10 +316,11 @@ void Simulation::run()
                 time_of_season <= par.max_time_season;
                 ++time_of_season)
         {
-            forage(time_of_season);
+            forage(time_of_season, generation == par.max_generation);
         }
 
         calculate_across_season_stats();
+        
         // replace the current generation
         reproduce();
 
@@ -277,7 +346,7 @@ void Simulation::reproduce()
             group_idx < metapopulation.size();
             ++group_idx)
     {
-        reproduction_vector.push_back(std::exp(metapopulation[group_idx].resources));
+        reproduction_vector.push_back(exp(metapopulation[group_idx].resources));
     } // end for group_idx
 
     std::discrete_distribution <unsigned> group_reproduction_sampler(
@@ -290,11 +359,6 @@ void Simulation::reproduce()
     std::uniform_int_distribution <unsigned> 
         parent_sampler{0, par.init_n_per_group - 1};
 
-    // TODO: allow for linear increases in offspring production
-    // see Field et al 2000 Nature --
-    //
-    // reset after every t time steps
-    
     unsigned target_group_size{0};
 
     for (auto group_iter{metapopulation.begin()};
@@ -571,6 +635,25 @@ void Simulation::write_data_headers()
         << "total_nests_predated_season" << ";"
         << std::endl;
 
+    data_file_dynamics 
+        << "generation" << ";"
+        << "t" << ";"
+        << "group_idx" << ";"
+        << "individual_idx" << ";"
+        << "group_size" << ";"
+        << "group_resources" << ";"
+        << "quality" << ";"
+        << "avg_quality_others" << ";"
+        << "avg_action_previous_others" << ";"
+        << "p_forage" << ";"
+        << "foraging_current" << ";"
+        << "group_dead" << ";"
+        << "p_nest_predatin" << ";"
+        << "sum_quality_group" << ";"
+        << "foraging_previous" << ";"
+        << std::endl;
+        
+
 } // end write_data_headers()
 
 void Simulation::write_parameters()
@@ -616,6 +699,7 @@ void Simulation::write_parameters()
         << "p_high_quality;" << par.p_high_quality << ";" << std::endl
         << "quality_weighting_low;" << par.quality_weighting[0] << ";" << std::endl
         << "quality_weighting_hi;" << par.quality_weighting[1] << ";" << std::endl
+        << "forage_individually;" << par.forage_individually << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
     ;
 } // end write_parameters

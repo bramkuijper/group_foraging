@@ -30,9 +30,15 @@ class Simulation
 
         // the file to write statistics to 
         std::ofstream data_file;
+        
+        // the file name to write the dynamics to
+        std::ofstream data_file_dynamics;
 
         // uniform distribution
         std::uniform_real_distribution<double> uniform;
+
+        // standard normal distribution
+        std::normal_distribution <double> normal{};
 
         // population of males, females and offspring
         std::vector <Group> metapopulation{};
@@ -66,7 +72,7 @@ class Simulation
         void write_parameters();
         void write_data_headers();
 
-        void forage(unsigned const t);
+        void forage(unsigned const t, bool const write_data);
         void learn();
 
         void init_nest_predation();
