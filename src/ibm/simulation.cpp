@@ -73,7 +73,7 @@ void Simulation::forage(
 
     unsigned n_foraging{};
     
-    std::vector <std::string> output_vector(
+    std::vector <std::string> output_vector_dynamics(
             par.init_n_per_group, "");
     
     unsigned individual_idx_global{0};
@@ -183,8 +183,6 @@ void Simulation::forage(
                 group_iter->members[individual_idx].foraging_current = false;
             }
 
-
-
             if (write_data_foraging)
             {
                 std::stringstream output{};
@@ -203,13 +201,14 @@ void Simulation::forage(
                     << individual_idx_global << ";"
                     << group_size << ";"
                     << group_iter->resources / par.max_resources << ";"
+                    << (group_iter->resources / group_size) / par.max_resources << ";"
                     << quality << ";"
                     << average_quality_others << ";"
                     << average_action_previous_others << ";"
                     << p_forage << ";"
                     << group_iter->members[individual_idx].foraging_current << ";";
 
-                output_vector[individual_idx] = output.str();
+                output_vector_dynamics[individual_idx] = output.str();
             } // end write_data_foraging
         } // end for individual_idx
 
@@ -261,7 +260,7 @@ void Simulation::forage(
         {
             if (write_data_foraging)
             {
-                data_file_dynamics << output_vector[individual_idx]
+                data_file_dynamics << output_vector_dynamics[individual_idx]
                     << group_iter->group_is_dead << ";"
                     << p_nest_predation[n_foraging] << ";"
                     << sum_quality_group << ";"
@@ -292,6 +291,7 @@ void Simulation::run()
 {
     write_data_headers();
 
+    // initial level of resources
     par.var_R = par.var_R_start;
 
     for (generation = 0; 
@@ -449,8 +449,13 @@ void Simulation::write_data()
 
     unsigned n{0};
 
+    // total amount of resources per group
     double mean_resources{0.0};
     double ss_resources{0.0};
+   
+    // per capita amount of resources
+    double mean_pc_resources{0.0};
+    double ss_pc_resources{0.0};
 
     // aux variable to make n_group count in terms of double
     double d_n_metapops{static_cast<double>(metapopulation.size())};
@@ -462,6 +467,11 @@ void Simulation::write_data()
         x = group_iter->resources;
         mean_resources += x;
         ss_resources += x * x;
+
+        // now calculate per capita resource level
+        x = group_iter->resources / static_cast<double>(group_iter->members.size());
+        mean_pc_resources += x;
+        ss_pc_resources += x * x;
 
         for (auto individual_iter{group_iter->members.begin()};
                 individual_iter != group_iter->members.end();
@@ -569,9 +579,13 @@ void Simulation::write_data()
     double mean_n_per_group = static_cast<double>(n) / d_n_metapops;
 
     mean_resources /= d_n_metapops;
+    mean_pc_resources /= d_n_metapops;
 
     double var_resources = ss_resources / d_n_metapops - 
         mean_resources * mean_resources;
+    
+    double var_pc_resources = ss_pc_resources / d_n_metapops - 
+        mean_pc_resources * mean_pc_resources;
 
     data_file << generation << ";" 
         << time_of_season << ";"
@@ -598,6 +612,8 @@ void Simulation::write_data()
         << mean_n_per_group << ";" 
         << mean_resources  << ";" 
         << var_resources  << ";" 
+        << mean_pc_resources  << ";" 
+        << var_pc_resources  << ";" 
         << mean_foraging_per_group << ";"
         << total_nests_predated_season << ";"
         << std::endl;
@@ -631,6 +647,8 @@ void Simulation::write_data_headers()
         << "mean_n_per_group" << ";" 
         << "mean_resources" << ";" 
         << "var_resources" << ";" 
+        << "mean_pc_resources" << ";" 
+        << "var_pc_resources" << ";" 
         << "mean_foraging_per_group" << ";"
         << "total_nests_predated_season" << ";"
         << std::endl;
@@ -642,6 +660,7 @@ void Simulation::write_data_headers()
         << "individual_idx" << ";"
         << "group_size" << ";"
         << "group_resources" << ";"
+        << "group_resources_pc" << ";"
         << "quality" << ";"
         << "avg_quality_others" << ";"
         << "avg_action_previous_others" << ";"

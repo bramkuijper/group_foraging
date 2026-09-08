@@ -6,7 +6,7 @@ base_name = "sim_group_forage_"
 current_time = dt.datetime.now()
 base_name += current_time.strftime("%Y%m%d_%H%M%S")
 
-nrep = 5
+nrep = 10
 
 sim_counter = 0
 
@@ -14,6 +14,17 @@ sim_counter = 0
 init_resources = 10
 nest_pred_baseline = 0.0
 nest_pred_scale = [0.05, 0.1]
+
+# the different cue combinations
+# order is: resources, seasonal time (t), own quality (qown), other's quality (qother), action other
+cues = [
+        [ 0, 0, 0, 0, 0], 
+        [1,0,0,0,0], 
+        [0,1,0,0,0],
+        [1,1,0,0,0], 
+        [1,1,1,1,1]
+        ]
+
 
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
@@ -36,41 +47,63 @@ epsilon = 0.75
 exe = "./group_foraging_ibm.exe"
 
 for i in range(0, nrep):
-    for mu_a_resource_i in mu_a_resource:
-        for mu_b_resource_i in mu_b_resource:
-            for mu_a_t_i in mu_a_t:
-                for mu_b_t_i in mu_b_t:
-                    for mu_a_qown_i in mu_a_qown:
-                        for mu_b_qown_i in mu_b_qown:
-                            for mu_a_qother_i in mu_a_qother:
-                                for mu_b_qother_i in mu_b_qother:
-                                    for mu_a_action_other_i in mu_a_action_other:
-                                        for mu_b_action_other_i in mu_b_action_other:
-                                            for p_high_quality_i in p_high_quality:
-                                                for nest_pred_scale_i in nest_pred_scale:
-                                                    for forage_individually_i in forage_individually:
-                                                        sim_counter += 1
-                                                        output_file = base_name + "_" + str(sim_counter)
+    for cue_combn_i in cues:
+        mu_a_resource_i = 0.0
+        mu_b_resource_i = 0.0
+        mu_a_t_i = 0.0
+        mu_b_t_i = 0.0
+        mu_a_qown_i = 0.0
+        mu_b_qown_i = 0.0
+        mu_a_qother_i = 0.0
+        mu_b_qother_i = 0.0
+        mu_a_action_other_i = 0.0
+        mu_b_action_other_i = 0.0
 
-                                                        print(f"{exe} " +
-                                                              f"{output_file} " +
-                                                              f"{mu_a_resource_i} " + 
-                                                              f"{mu_b_resource_i} " + 
-                                                              f"{mu_a_t_i} " + 
-                                                              f"{mu_b_t_i} " + 
-                                                              f"{mu_a_qown_i} " + 
-                                                              f"{mu_b_qown_i} " + 
-                                                              f"{mu_a_qother_i} " + 
-                                                              f"{mu_b_qother_i} " + 
-                                                              f"{mu_a_action_other_i} " + 
-                                                              f"{mu_b_action_other_i} " + 
-                                                              f"{p_high_quality_i} " + 
-                                                              f"{init_resources} " + 
-                                                              f"{nest_pred_baseline} " + 
-                                                              f"{nest_pred_scale_i} " + 
-                                                              f"{epsilon} " + 
-                                                              f"{forage_individually_i} " + 
-                                                              f"{max_gen} ") 
+        if cue_combn_i[0] > 0:
+            mu_a_resource_i = 0.05
+            mu_b_resource_i = 0.05
+
+        if cue_combn_i[1] > 0:
+            mu_a_t_i = 0.05
+            mu_b_t_i = 0.05
+        
+        if cue_combn_i[2] > 0:
+            mu_a_qown_i = 0.05
+            mu_b_qown_i = 0.05
+        
+        if cue_combn_i[3] > 0:
+            mu_a_qother_i = 0.05
+            mu_b_qother_i = 0.05
+
+        if cue_combn_i[4] > 0:
+            mu_a_action_other_i = 0.05
+            mu_b_action_other_i = 0.05
+
+        for p_high_quality_i in p_high_quality:
+            for nest_pred_scale_i in nest_pred_scale:
+                for forage_individually_i in forage_individually:
+                    sim_counter += 1
+                    output_file = base_name + "_" + str(sim_counter)
+
+                    print(f"{exe} " +
+                          f"{output_file} " +
+                          f"{mu_a_resource_i} " + 
+                          f"{mu_b_resource_i} " + 
+                          f"{mu_a_t_i} " + 
+                          f"{mu_b_t_i} " + 
+                          f"{mu_a_qown_i} " + 
+                          f"{mu_b_qown_i} " + 
+                          f"{mu_a_qother_i} " + 
+                          f"{mu_b_qother_i} " + 
+                          f"{mu_a_action_other_i} " + 
+                          f"{mu_b_action_other_i} " + 
+                          f"{p_high_quality_i} " + 
+                          f"{init_resources} " + 
+                          f"{nest_pred_baseline} " + 
+                          f"{nest_pred_scale_i} " + 
+                          f"{epsilon} " + 
+                          f"{forage_individually_i} " + 
+                          f"{max_gen} ") 
 
 
                     
