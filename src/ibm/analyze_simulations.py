@@ -97,7 +97,7 @@ def group_resources_over_time(filename, only_survivors = True):
                     sep=";")
 
     # select only t, group size and resources
-    dynamics_data = dynamics_data[["t","group_idx","group_size","group_resources"]]
+    dynamics_data = dynamics_data[["t","group_idx","group_size","group_resources_pc","group_resources"]]
 
     # if we are only looking at groups which survive until
     # the end, get their indices from last time step and use
@@ -123,6 +123,8 @@ def group_resources_over_time(filename, only_survivors = True):
     for index, row in params_df.iterrows():
         param_name = row["name"]
         param_value = row["value"]
+
+        result.reset_index(drop=True, inplace=True)
 
         result[param_name] = pd.Series(param_value for i in range(0, nrow))
 
@@ -265,6 +267,8 @@ for root, dir, files in os.walk(sys.argv[1]):
 
 
 total = pd.concat(list_time_dfs)
+
+print(total.head())
 
 total.to_csv(path_or_buf = "summary_time_data.csv", sep=";")
 

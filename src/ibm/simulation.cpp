@@ -61,6 +61,12 @@ void Simulation::forage(
     // aux variable to record whether individual forages or not
     double p_forage;
 
+    // aux variable to measure resource increment due to foraging
+    double foraging_increment;
+    
+    // aux variable to measure total resource increment (foraging - metabolism)
+    double resource_increment;
+
     // averages of other individuals
     double average_action_previous_others{};
     double average_quality_others{};
@@ -154,7 +160,7 @@ void Simulation::forage(
 
             // and calculate prob to forage
             p_forage = group_iter->members[individual_idx].prob_forage(
-                group_iter->resources / par.max_resources,
+                group_iter->resource_increment,
                 static_cast<double>(t) / par.max_time_season,
                 static_cast<double>(quality),
                 average_quality_others,
@@ -174,7 +180,9 @@ void Simulation::forage(
                     if (uniform(rng_r) < 1.0 - std::exp(
                                 -par.epsilon * par.quality_weighting[quality]))
                     {
-                        group_iter->resources += par.R + normal(rng_r) * par.var_R;
+                        resource_increment = par.R + normal(rng_r) * par.var_R;
+                        group_iter->resources += resource_increment;
+                        group_iter->resource_increment = resource_increment;
                     }
                 }
             } 
@@ -201,6 +209,8 @@ void Simulation::forage(
                     << individual_idx_global << ";"
                     << group_size << ";"
                     << group_iter->resources / par.max_resources << ";"
+                    << group_iter->resource_increment << ";"
+                    << group_iter->resource_increment / group_size << ";"
                     << (group_iter->resources / group_size) / par.max_resources << ";"
                     << quality << ";"
                     << average_quality_others << ";"
@@ -220,6 +230,7 @@ void Simulation::forage(
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
             group_iter->resources += par.R; 
+            group_iter->resource_increment += par.R; 
         } 
 
         // restrict resources to max
@@ -306,6 +317,7 @@ void Simulation::run()
                 ++group_iter)
         {
             group_iter->resources = par.init_resources;
+            group_iter->resource_increment = par.init_resources;
             group_iter->group_is_dead = false;
         }
 
