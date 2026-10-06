@@ -21,7 +21,12 @@ int main(int argc, char **argv)
     params.init_resources = std::stod(argv[13]); 
     params.nest_pred_baseline = std::stod(argv[14]); 
     params.nest_pred_scale = std::stod(argv[15]); 
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[16]));
+    params.epsilon = std::stod(argv[16]); 
+
+    params.forage_individually = static_cast<bool>(std::stoi(argv[17]));
+    params.var_R_perturb = std::stod(argv[18]);
+    params.generation_perturb = static_cast<unsigned>(std::stoul(argv[19]));
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[20]));
 
     Simulation sim{params};
 

@@ -39,6 +39,7 @@ class Parameters
 
         // duration of the simulation
         unsigned int max_generation{10000};
+        unsigned int generation_perturb{9000};
         
         unsigned int max_time_season{50};
 
@@ -50,7 +51,7 @@ class Parameters
         double max_resources{30.0};
 
         // slope of the foraging success function
-        double epsilon{3.0};
+        double epsilon{8.0};
 
         // how quality affects foraging encounter rates
         double quality_weighting[2]{0.1,0.9};
@@ -73,6 +74,10 @@ class Parameters
 
         // resources gained per time step when foraging
         double R{4.0};
+
+        double var_R_start{0.25};
+        double var_R_perturb{0.0};
+        double var_R{0.0};
         
         // mutation rates and initial values
 
@@ -121,6 +126,8 @@ class Parameters
 
         // quality variation
         double p_high_quality{0.5};
+
+        bool forage_individually{false};
 
         // initial value of joining a group
         double init_p_group{0.25};
