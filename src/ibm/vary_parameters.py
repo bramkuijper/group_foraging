@@ -112,9 +112,9 @@ for i in range(0, nrep):
                               f"{nest_pred_baseline} " + 
                               f"{nest_pred_scale_i} " + 
                               f"{epsilon} " + 
+                              f"{forage_individually_i} " + 
                               f"{ac_i} " + 
                               f"{var_R_start} " + 
                               f"{var_R_perturb} " + 
                               f"{generation_perturb} " + 
-                              f"{forage_individually_i} " + 
                               f"{max_gen} ") 
