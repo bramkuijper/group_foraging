@@ -13,31 +13,51 @@ dynamics_files <- list.files(
 # we have tonnes of females and males each
 # with particular ID's nested within groups
 
-file <- dynamics_files[1]
+the.data <- data.frame(file = dynamics_files)
 
-fx <- read.table(file = file,
-                 header = T,
-                 sep =";")
+the.data$sd_single <- NA
+the.data$sd_double <- NA
 
-ggplot(data = fx, 
-       mapping = aes(x = t, y = group_resources)) +
-    geom_line(mapping = aes(group = group_idx),alpha = 0.1) +
-    geom_jitter(width = 0.2, alpha = 0.1,height=0.05)
+for (idx in 1:length(dynamics_files))
+{
+    print(idx)
+    
+    file <- as.character(the.data[idx,"file"])
+    fx <- read.table(file = file,
+                     header = T,
+                     sep =";")
+    
+    fx_single <- fx %>% filter(group_size == 1)
+    fx_double <- fx %>% filter(group_size > 1)
+    
+    sd_single <- NA
+    sd_double <- NA
+    
+    if (nrow(fx_single) >0)
+    {
+        # variance in resource levels over time for singles
+        obj <- lmer(formula = group_resources ~ t + (t || group_idx),
+                data = fx %>% filter(group_size == 1))
+        
+        sd_single <- as.numeric(attr(VarCorr(obj, comp="stddev")$group_idx.1, "stddev"))
+        
+    }
+    
+    if (nrow(fx_double) > 0)
+    {
+        # variance in resource levels over time for paired individuals
+        obj <- lmer(formula = group_resources ~ t + (t || group_idx),
+                data = fx %>% filter(group_size > 1))
+        
+        sd_double <- as.numeric(attr(VarCorr(obj, comp="stddev")$group_idx.1, "stddev"))
+    }
+    
+    the.data[idx,c("sd_single","sd_double")] <- c(sd_single,sd_double)
+}
 
-ggsave(filename=paste0(file,".pdf"))
+ggplot(data = the.data,
+       mapping = aes(x = sd_single, y = sd_double)) +
+    geom_point() +
+    theme_classic()
 
-# variance in resource levels over time
-obj <- lmer(formula = group_resources ~ 1 + (1|group_idx),
-        data = fx)
-
-print(obj)
-
-
-## calculate numbers of individuals over time
-#fx_summary <- fx %>% group_by(t) %>%
-#    summarise(total = n())
-#
-#ggplot(data = fx_summary,
-#       mapping = aes(x = t, y = total)) +
-#    geom_line()
-
+ggsave(filename="plot_single_double.pdf")

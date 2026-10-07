@@ -39,6 +39,7 @@ class Parameters
 
         // duration of the simulation
         unsigned int max_generation{10000};
+        unsigned int generation_perturb{9000};
         
         unsigned int max_time_season{50};
 
@@ -74,7 +75,7 @@ class Parameters
         // resources gained per time step when foraging
         double R{4.0};
 
-        double var_R_start{0.5};
+        double var_R_start{0.25};
         double var_R_perturb{0.0};
         double var_R{0.0};
         

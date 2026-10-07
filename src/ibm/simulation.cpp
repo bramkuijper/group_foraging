@@ -331,6 +331,11 @@ void Simulation::run()
             generation <= par.max_generation; 
             ++generation)
     {
+        if (generation == par.generation_perturb)
+        {
+            par.var_R = par.var_R_perturb;
+        }
+
         // every generation start with an initial amount 
         // of resources
         // and also all groups are alive
@@ -757,5 +762,8 @@ void Simulation::write_parameters()
         << "quality_weighting_hi;" << par.quality_weighting[1] << ";" << std::endl
         << "forage_individually;" << par.forage_individually << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
+        << "var_R_start;" << par.var_R_start << ";" << std::endl
+        << "var_R_perturb;" << par.var_R_perturb << ";" << std::endl
+        << "generation_perturb;" << par.generation_perturb << ";" << std::endl
     ;
 } // end write_parameters
