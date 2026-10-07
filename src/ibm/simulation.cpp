@@ -695,6 +695,7 @@ void Simulation::write_data_headers()
     data_file_dynamics 
         << "generation" << ";"
         << "t" << ";"
+        << "t_scaled" << ";"
         << "group_idx" << ";"
         << "individual_idx" << ";"
         << "n_per_group" << ";"

@@ -24,9 +24,11 @@ int main(int argc, char **argv)
     params.epsilon = std::stod(argv[16]); 
 
     params.forage_individually = static_cast<bool>(std::stoi(argv[17]));
-    params.var_R_perturb = std::stod(argv[18]);
-    params.generation_perturb = static_cast<unsigned>(std::stoul(argv[19]));
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[20]));
+    params.ac = std::stod(argv[18]);
+    params.var_R_start = std::stod(argv[19]);
+    params.var_R_perturb = std::stod(argv[20]);
+    params.generation_perturb = static_cast<unsigned>(std::stoul(argv[21]));
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[22]));
 
     Simulation sim{params};
 
