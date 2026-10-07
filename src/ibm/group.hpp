@@ -12,6 +12,7 @@ class Group
         std::vector<Individual> juveniles;
 
         double resources{0.0};
+        double resource_increment{0.0};
         bool group_is_dead{false};
 
         // initiation constructor

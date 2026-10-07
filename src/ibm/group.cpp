@@ -11,6 +11,7 @@ Group::Group(
 Group::Group(Group const &other) :
     members(other.members),
     resources(other.resources),
+    resource_increment(other.resource_increment),
     group_is_dead{other.group_is_dead}
 {}
 
@@ -18,5 +19,6 @@ void Group::operator=(Group const &other)
 {
     members = other.members;
     resources = other.resources;
+    resource_increment = other.resource_increment;
     group_is_dead = other.group_is_dead;
 }

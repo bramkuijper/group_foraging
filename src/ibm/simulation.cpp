@@ -61,6 +61,11 @@ void Simulation::forage(
     // aux variable to record whether individual forages or not
     double p_forage;
 
+    // aux variable to measure total resource increment (foraging - metabolism)
+    // at the level of the group during the current time step
+    double resource_increment;
+    double resource_increment_group;
+
     // averages of other individuals
     double average_action_previous_others{};
     double average_quality_others{};
@@ -69,11 +74,15 @@ void Simulation::forage(
     // track of this individual's quality
     bool quality{};
 
+    // aux variable to determine collective
+    // foraging success as a sum of the qualities
+    // of those individuals who commit themselves
+    // to foraging
     double sum_quality_group{};
 
     unsigned n_foraging{};
     
-    std::vector <std::string> output_vector(
+    std::vector <std::string> output_vector_dynamics(
             par.init_n_per_group, "");
     
     unsigned individual_idx_global{0};
@@ -96,9 +105,15 @@ void Simulation::forage(
                 group_iter->members.size());
 
 
+        // reset the quality of this group to 0
+        // (this variable is determined to calculate
+        // collective foraging across all individuals 
+        // in the group)
         sum_quality_group = 0.0;
+        
         n_foraging = 0;
 
+        resource_increment_group = 0.0;
 
         // cannot use iterators as we need to avoid
         // including the focal individual in calculating the 
@@ -111,6 +126,8 @@ void Simulation::forage(
             // perceives about others
             average_action_previous_others = 0.0;
             average_quality_others = 0.0;
+
+            resource_increment = 0.0;
 
             // look at actions of other individuals
             // however, we can only do this when looking
@@ -154,7 +171,7 @@ void Simulation::forage(
 
             // and calculate prob to forage
             p_forage = group_iter->members[individual_idx].prob_forage(
-                group_iter->resources / par.max_resources,
+                group_iter->resource_increment,
                 static_cast<double>(t) / par.max_time_season,
                 static_cast<double>(quality),
                 average_quality_others,
@@ -174,7 +191,8 @@ void Simulation::forage(
                     if (uniform(rng_r) < 1.0 - std::exp(
                                 -par.epsilon * par.quality_weighting[quality]))
                     {
-                        group_iter->resources += par.R + normal(rng_r) * par.var_R;
+                        resource_increment = par.R + normal(rng_r) * par.var_R;
+                        resource_increment_group += resource_increment;
                     }
                 }
             } 
@@ -182,8 +200,6 @@ void Simulation::forage(
             {
                 group_iter->members[individual_idx].foraging_current = false;
             }
-
-
 
             if (write_data_foraging)
             {
@@ -202,14 +218,14 @@ void Simulation::forage(
                     << group_idx << ";"
                     << individual_idx_global << ";"
                     << group_size << ";"
-                    << group_iter->resources / par.max_resources << ";"
+                    << resource_increment << ";"
                     << quality << ";"
                     << average_quality_others << ";"
                     << average_action_previous_others << ";"
                     << p_forage << ";"
                     << group_iter->members[individual_idx].foraging_current << ";";
 
-                output_vector[individual_idx] = output.str();
+                output_vector_dynamics[individual_idx] = output.str();
             } // end write_data_foraging
         } // end for individual_idx
 
@@ -220,8 +236,13 @@ void Simulation::forage(
         if (!par.forage_individually && uniform(rng_r) < 
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
-            group_iter->resources += par.R; 
+            resource_increment_group = par.R + normal(rng_r) * par.var_R;
         } 
+           
+        // update this group's resource increment
+        // which will be used as a cue next time around
+        group_iter->resource_increment = resource_increment_group;
+        group_iter->resources += resource_increment_group;
 
         // restrict resources to max
         if (group_iter->resources > par.max_resources)
@@ -261,8 +282,18 @@ void Simulation::forage(
         {
             if (write_data_foraging)
             {
-                data_file_dynamics << output_vector[individual_idx]
+                // this part of the data will be unique for each individual
+                // and has been recorded in the previous loop in which we decide
+                // whether an individual starts to forage
+                data_file_dynamics << output_vector_dynamics[individual_idx]
+
+                    // this data below will be the same for each individual
+                    // in the group
                     << group_iter->group_is_dead << ";"
+                    << group_iter->resource_increment << ";"
+                    << group_iter->resource_increment / group_size << ";"
+                    << group_iter->resources / par.max_resources << ";"
+                    << group_iter->resources / group_size / par.max_resources << ";"
                     << p_nest_predation[n_foraging] << ";"
                     << sum_quality_group << ";"
                     << group_iter->members[individual_idx].foraging_previous << ";"
@@ -292,6 +323,7 @@ void Simulation::run()
 {
     write_data_headers();
 
+    // initial level of resources
     par.var_R = par.var_R_start;
 
     for (generation = 0; 
@@ -311,6 +343,7 @@ void Simulation::run()
                 ++group_iter)
         {
             group_iter->resources = par.init_resources;
+            group_iter->resource_increment = par.init_resources;
             group_iter->group_is_dead = false;
         }
 
@@ -454,8 +487,13 @@ void Simulation::write_data()
 
     unsigned n{0};
 
+    // total amount of resources per group
     double mean_resources{0.0};
     double ss_resources{0.0};
+   
+    // per capita amount of resources
+    double mean_pc_resources{0.0};
+    double ss_pc_resources{0.0};
 
     // aux variable to make n_group count in terms of double
     double d_n_metapops{static_cast<double>(metapopulation.size())};
@@ -467,6 +505,11 @@ void Simulation::write_data()
         x = group_iter->resources;
         mean_resources += x;
         ss_resources += x * x;
+
+        // now calculate per capita resource level
+        x = group_iter->resources / static_cast<double>(group_iter->members.size());
+        mean_pc_resources += x;
+        ss_pc_resources += x * x;
 
         for (auto individual_iter{group_iter->members.begin()};
                 individual_iter != group_iter->members.end();
@@ -574,9 +617,13 @@ void Simulation::write_data()
     double mean_n_per_group = static_cast<double>(n) / d_n_metapops;
 
     mean_resources /= d_n_metapops;
+    mean_pc_resources /= d_n_metapops;
 
     double var_resources = ss_resources / d_n_metapops - 
         mean_resources * mean_resources;
+    
+    double var_pc_resources = ss_pc_resources / d_n_metapops - 
+        mean_pc_resources * mean_pc_resources;
 
     data_file << generation << ";" 
         << time_of_season << ";"
@@ -603,6 +650,8 @@ void Simulation::write_data()
         << mean_n_per_group << ";" 
         << mean_resources  << ";" 
         << var_resources  << ";" 
+        << mean_pc_resources  << ";" 
+        << var_pc_resources  << ";" 
         << mean_foraging_per_group << ";"
         << total_nests_predated_season << ";"
         << std::endl;
@@ -636,6 +685,8 @@ void Simulation::write_data_headers()
         << "mean_n_per_group" << ";" 
         << "mean_resources" << ";" 
         << "var_resources" << ";" 
+        << "mean_pc_resources" << ";" 
+        << "var_pc_resources" << ";" 
         << "mean_foraging_per_group" << ";"
         << "total_nests_predated_season" << ";"
         << std::endl;
@@ -645,15 +696,19 @@ void Simulation::write_data_headers()
         << "t" << ";"
         << "group_idx" << ";"
         << "individual_idx" << ";"
-        << "group_size" << ";"
-        << "group_resources" << ";"
+        << "n_per_group" << ";"
+        << "resource_increment_individual" << ";"
         << "quality" << ";"
         << "avg_quality_others" << ";"
         << "avg_action_previous_others" << ";"
         << "p_forage" << ";"
         << "foraging_current" << ";"
         << "group_dead" << ";"
-        << "p_nest_predatin" << ";"
+        << "resource_increment_group" << ";"
+        << "resource_increment_group_pc" << ";"
+        << "cumul_resources" << ";"
+        << "cumul_resources_pc" << ";"
+        << "p_nest_predation" << ";"
         << "sum_quality_group" << ";"
         << "foraging_previous" << ";"
         << std::endl;
