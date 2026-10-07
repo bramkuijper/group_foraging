@@ -215,6 +215,7 @@ void Simulation::forage(
                 output 
                     << generation << ";"
                     << t << ";"
+                    << (static_cast<double>(t) / par.max_time_season) << ";"
                     << group_idx << ";"
                     << individual_idx_global << ";"
                     << group_size << ";"

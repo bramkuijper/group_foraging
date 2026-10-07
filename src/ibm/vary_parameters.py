@@ -17,14 +17,15 @@ nest_pred_scale = [0.05,0.1]
 
 # the different cue combinations
 # order is: resources, seasonal time (t), own quality (qown), other's quality (qother), action other
-cues = [
-        [ 0, 0, 0, 0, 0], 
-        [1,0,0,0,0], 
-        [0,1,0,0,0],
-        [1,1,0,0,0], 
-        [0,0,1,1,1], 
-        [1,1,1,1,1]
-        ]
+cues = [[ 0, 1, 0, 0, 0 ]]
+#cues = [
+#        [ 0, 0, 0, 0, 0], 
+#        [1,0,0,0,0], 
+#        [0,1,0,0,0],
+#        [1,1,0,0,0], 
+#        [0,0,1,1,1], 
+#        [1,1,1,1,1]
+#        ]
 
 
 mu_a_resource = [0.05]
