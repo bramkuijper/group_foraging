@@ -6,20 +6,21 @@ base_name = "sim_group_forage_"
 current_time = dt.datetime.now()
 base_name += current_time.strftime("%Y%m%d_%H%M%S")
 
-nrep = 3
+nrep = 10
 
 sim_counter = 0
 
 # resources at the start of the season
 init_resources = 10
 nest_pred_baseline = 0.0
-nest_pred_scale = [0.05]
+nest_pred_scale = [0.05,0.1]
 
 # the different cue combinations
 # order is: resources, seasonal time (t), own quality (qown), other's quality (qother), action other
 cues = [
         [ 1, 0, 0, 0, 0],
-        [ 0, 1, 0, 0, 0]
+        [ 0, 1, 0, 0, 0],
+        [ 1, 1, 0, 0, 0]
 #        [1,0,0,0,0], 
 #        [0,1,0,0,0],
 #        [1,1,0,0,0], 
@@ -47,7 +48,7 @@ var_R_start = 0
 var_R_perturb = 0
 generation_perturb = 50500 
 
-forage_individually = [0]
+forage_individually = [0,1]
 
 ac = [0,0.5,1]
 
