@@ -58,6 +58,10 @@ jsonstuff <- '[
     },
     {
         "xvar" : "generation",
+        "yvar" : "var_n_per_group"
+    },
+    {
+        "xvar" : "generation",
         "yvar" : "mean_resources"
     },
     {

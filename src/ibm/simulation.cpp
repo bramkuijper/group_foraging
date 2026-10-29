@@ -521,7 +521,7 @@ void Simulation::write_data()
         mean_pc_resources += x;
         ss_pc_resources += x * x;
 
-        n_i = group_iter->members.size();
+        n_i = static_cast<unsigned>(group_iter->members.size());
 
         for (auto individual_iter{group_iter->members.begin()};
                 individual_iter != group_iter->members.end();
@@ -699,6 +699,7 @@ void Simulation::write_data_headers()
         << "mean_b_action_other" << ";"
         << "var_b_action_other" << ";" 
         << "mean_n_per_group" << ";" 
+        << "var_n_per_group" << ";" 
         << "mean_resources" << ";" 
         << "var_resources" << ";" 
         << "mean_pc_resources" << ";" 
