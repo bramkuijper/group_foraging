@@ -261,6 +261,8 @@ for root, dir, files in os.walk(sys.argv[1]):
 
             the_actual_file = os.path.join(root, file)
             analyze_file(the_actual_file)
+
+            print(the_actual_file)
             
             df_time = group_resources_over_time(the_actual_file)
             list_time_dfs.append(df_time)
