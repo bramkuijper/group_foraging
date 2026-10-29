@@ -165,7 +165,7 @@ void Simulation::forage(
                     average_action_previous_others /= group_size - 1;
                     average_quality_others /= group_size - 1;
                 }
-            }
+            } // end t > 0
             
             quality = group_iter->members[individual_idx].quality;
 
@@ -176,6 +176,13 @@ void Simulation::forage(
                 static_cast<double>(quality),
                 average_quality_others,
                 average_action_previous_others);
+
+
+            if (generation == par.generation_perturb &&
+                    t == par.t_perturb)
+            {
+
+            }
 
             // ok individual goes out to forage
             if (uniform(rng_r) < p_forage)
@@ -487,6 +494,8 @@ void Simulation::write_data()
     double x;
 
     unsigned n{0};
+    unsigned ssn{0};
+    unsigned n_i{0};
 
     // total amount of resources per group
     double mean_resources{0.0};
@@ -511,6 +520,8 @@ void Simulation::write_data()
         x = group_iter->resources / static_cast<double>(group_iter->members.size());
         mean_pc_resources += x;
         ss_pc_resources += x * x;
+
+        n_i = group_iter->members.size();
 
         for (auto individual_iter{group_iter->members.begin()};
                 individual_iter != group_iter->members.end();
@@ -576,8 +587,10 @@ void Simulation::write_data()
             mean_b_action_other += x;
             ss_b_action_other += x * x;
 
-            ++n;
         } // end for individual_iter
+        
+        n += n_i;
+        ssn += n_i * n_i;
     } // end for group_iter
 
     // variables to calculate 
@@ -616,6 +629,7 @@ void Simulation::write_data()
         mean_b_action_other * mean_b_action_other};
 
     double mean_n_per_group = static_cast<double>(n) / d_n_metapops;
+    double var_n_per_group = static_cast<double>(ssn) / d_n_metapops - mean_n_per_group * mean_n_per_group;
 
     mean_resources /= d_n_metapops;
     mean_pc_resources /= d_n_metapops;
@@ -649,6 +663,7 @@ void Simulation::write_data()
         << mean_b_action_other << ";"
         << var_b_action_other << ";" 
         << mean_n_per_group << ";" 
+        << var_n_per_group << ";" 
         << mean_resources  << ";" 
         << var_resources  << ";" 
         << mean_pc_resources  << ";" 

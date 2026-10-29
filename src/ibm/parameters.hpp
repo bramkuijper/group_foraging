@@ -32,14 +32,15 @@ class Parameters
     public:
         // population size, which should be even number
         unsigned int n_group{2000};
-        unsigned int init_n_per_group{2};
+        unsigned int init_n_per_group{5};
 
         // probability of having a group with a single individual
         double pr_single{0.5};
 
         // duration of the simulation
         unsigned int max_generation{10000};
-        unsigned int generation_perturb{9000};
+        unsigned int generation_perturb{max_generation};
+        unsigned int t_perturb{25};
         
         unsigned int max_time_season{50};
 

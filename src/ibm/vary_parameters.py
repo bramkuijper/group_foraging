@@ -12,6 +12,7 @@ sim_counter = 0
 
 # resources at the start of the season
 init_resources = 10
+init_n_per_group = 5
 nest_pred_baseline = 0.0
 nest_pred_scale = [0.05,0.1]
 
@@ -47,6 +48,7 @@ max_gen = 50000
 var_R_start = 0
 var_R_perturb = 0
 generation_perturb = 50500 
+t_perturb = 25
 
 forage_individually = [0,1]
 
@@ -110,6 +112,7 @@ for i in range(0, nrep):
                               f"{mu_b_action_other_i} " + 
                               f"{p_high_quality_i} " + 
                               f"{init_resources} " + 
+                              f"{init_n_per_group} " + 
                               f"{nest_pred_baseline} " + 
                               f"{nest_pred_scale_i} " + 
                               f"{epsilon} " + 
@@ -118,4 +121,5 @@ for i in range(0, nrep):
                               f"{var_R_start} " + 
                               f"{var_R_perturb} " + 
                               f"{generation_perturb} " + 
+                              f"{t_perturb} " + 
                               f"{max_gen} ") 
