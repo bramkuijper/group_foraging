@@ -19,16 +19,18 @@ int main(int argc, char **argv)
     params.mu_b_action_other = std::stod(argv[11]); 
     params.p_high_quality = std::stod(argv[12]); 
     params.init_resources = std::stod(argv[13]); 
-    params.nest_pred_baseline = std::stod(argv[14]); 
-    params.nest_pred_scale = std::stod(argv[15]); 
-    params.epsilon = std::stod(argv[16]); 
+    params.init_n_per_group = static_cast<unsigned>(std::stoul(argv[14])); 
+    params.nest_pred_baseline = std::stod(argv[15]); 
+    params.nest_pred_scale = std::stod(argv[16]); 
+    params.epsilon = std::stod(argv[17]); 
 
-    params.forage_individually = static_cast<bool>(std::stoi(argv[17]));
-    params.ac = std::stod(argv[18]);
-    params.var_R_start = std::stod(argv[19]);
-    params.var_R_perturb = std::stod(argv[20]);
-    params.generation_perturb = static_cast<unsigned>(std::stoul(argv[21]));
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[22]));
+    params.forage_individually = static_cast<bool>(std::stoi(argv[18]));
+    params.ac = std::stod(argv[19]);
+    params.var_R_start = std::stod(argv[20]);
+    params.var_R_perturb = std::stod(argv[21]);
+    params.generation_perturb = static_cast<unsigned>(std::stoul(argv[22]));
+    params.t_perturb = static_cast<unsigned>(std::stoul(argv[23]));
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[24]));
 
     Simulation sim{params};
 

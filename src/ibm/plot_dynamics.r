@@ -13,7 +13,7 @@ output_file_name = paste0("graph_",basename(dyn_file),".pdf")
 
 dyn_data <- read_delim(file = dyn_file
                        ,delim = ";") %>% mutate(
-    group_size_f = as_factor(group_size),
+    group_size_f = as_factor(n_per_group),
     group_idx = as.integer(group_idx),
     group_idx_f = as_factor(group_idx),
     individual_idx_f = as_factor(individual_idx),
@@ -21,7 +21,7 @@ dyn_data <- read_delim(file = dyn_file
 )
 
 p1 <- ggplot(data = dyn_data,
-       mapping = aes(x = t, y = group_resources)) +
+       mapping = aes(x = t, y = cumul_resources)) +
     geom_line(mapping = aes(group = group_idx_f, colour = group_size_f), 
               alpha = 0.1) +
     theme_classic() + 
@@ -32,7 +32,7 @@ p1 <- ggplot(data = dyn_data,
 
 ## next: distribution of resources
 p2 <- ggplot(data = dyn_data %>% filter(t == max(t)),
-            mapping = aes(x = group_resources)) +
+            mapping = aes(x = cumul_resources)) +
                 geom_density(mapping = aes(colour = group_size_f)) +
     theme_classic() +
     scale_colour_brewer(palette="Set1")
