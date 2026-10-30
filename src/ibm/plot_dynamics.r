@@ -73,12 +73,31 @@ group_numbers_per_t <- dyn_data %>%
     group_by(t) %>%
     summarise(total = n())
 
-# number of groups as the season progresses
-p6 <- ggplot(data = group_numbers_per_t,
-             mapping = aes(x = t, y = total)) +
-    geom_line() +
-    theme_classic() +
-    ylim(0, max(group_numbers_per_t$total))
+
+# actually this is not what I want, I want a histogram
+# over time of group size distributions of groups that
+# that are alive at that moment
+the.summary <- dyn_data %>% 
+    filter(group_dead == 0) %>%
+    group_by(t, group_idx) %>%
+    summarise(n_total_per_group = n()) %>%  
+    group_by(t, n_total_per_group) %>%
+    summarize(group_hist = n(), .groups = "drop") %>%
+    complete(t = 0:max(dyn_data$t),
+             n_total_per_group = 0:5,
+             fill = list(group_hist = 0)
+             )
+
+p6 <- ggplot(data = the.summary,
+        mapping = aes(x = t, y = n_total_per_group)) +
+    geom_tile(mapping = aes(fill = group_hist))
+
+     ## number of groups as the season progresses
+     #p6 <- ggplot(data = group_numbers_per_t,
+     #             mapping = aes(x = t, y = total)) +
+     #    geom_line() +
+     #    theme_classic() +
+     #    ylim(0, max(group_numbers_per_t$total))
 
 (p1 / p2 / p3 / p4 / p5 / p6)
 

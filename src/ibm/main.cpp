@@ -29,8 +29,10 @@ int main(int argc, char **argv)
     params.var_R_start = std::stod(argv[20]);
     params.var_R_perturb = std::stod(argv[21]);
     params.generation_perturb = static_cast<unsigned>(std::stoul(argv[22]));
-    params.t_perturb = static_cast<unsigned>(std::stoul(argv[23]));
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[24]));
+    params.t_perturb_start = static_cast<unsigned>(std::stoul(argv[23]));
+    params.t_perturb_end = static_cast<unsigned>(std::stoul(argv[24]));
+    params.perturbation_type = static_cast<unsigned>(std::stoul(argv[25]));
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[26]));
 
     Simulation sim{params};
 

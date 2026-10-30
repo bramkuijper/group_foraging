@@ -73,6 +73,8 @@ void Simulation::forage(
     // aux variable to keep 
     // track of this individual's quality
     bool quality{};
+        
+    bool dies_during_foraging{};
 
     // aux variable to determine collective
     // foraging success as a sum of the qualities
@@ -178,16 +180,32 @@ void Simulation::forage(
                 average_action_previous_others);
 
 
+            // perform experimental perturbations
             if (generation == par.generation_perturb &&
-                    t == par.t_perturb)
+                    (t >= par.t_perturb_start &&
+                    t < par.t_perturb_end))
             {
-
+                switch(par.perturbation_type)
+                {
+                    case 0: // reducing value of resources
+                    {
+                        break;
+                    }
+                    case 1: // taking foragers away
+                    {
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
             }
 
             // ok individual goes out to forage
             if (uniform(rng_r) < p_forage)
             {
-                sum_quality_group += par.quality_weighting[quality];
+                sum_quality_group += par.food_encounter_rate[quality];
                 ++n_foraging;
                 ++mean_foraging_per_group;
 
@@ -196,12 +214,13 @@ void Simulation::forage(
                 if (par.forage_individually)
                 {
                     if (uniform(rng_r) < 1.0 - std::exp(
-                                -par.epsilon * par.quality_weighting[quality]))
+                                -par.epsilon * par.food_encounter_rate[quality]))
                     {
                         resource_increment = par.R + normal(rng_r) * par.var_R;
                         resource_increment_group += resource_increment;
                     }
                 }
+                
             } 
             else
             {
@@ -283,11 +302,20 @@ void Simulation::forage(
             group_iter->resources = 0;
         }
 
+
         // now that decisions have been made let's update action previous
         for (unsigned int individual_idx{0};
                 individual_idx < group_size;
-                ++individual_idx)
+                group_iter->members.size()
+                )
         {
+
+            quality = group_iter->members[individual_idx].quality;
+
+            // determine whether individuals die during foraging
+            dies_during_foraging = group_iter->members[individual_idx].foraging_current
+                && uniform(rng_r) < par.mortality_prob_foraging[quality];
+
             if (write_data_foraging)
             {
                 // this part of the data will be unique for each individual
@@ -298,6 +326,7 @@ void Simulation::forage(
                     // this data below will be the same for each individual
                     // in the group
                     << group_iter->group_is_dead << ";"
+                    << dies_during_foraging << ";"
                     << group_iter->resource_increment << ";"
                     << group_iter->resource_increment / group_size << ";"
                     << group_iter->resources / par.max_resources << ";"
@@ -308,9 +337,27 @@ void Simulation::forage(
                     << std::endl;
             }
 
-            group_iter->members[individual_idx].foraging_previous = 
-                group_iter->members[individual_idx].foraging_current;
-        }
+            // remove individual from the stack
+            if (dies_during_foraging)
+            {
+                group_iter->members[individual_idx] = 
+                    group_iter->members.back();
+
+                group_iter->members.pop_back();
+            }
+            else
+            {
+                group_iter->members[individual_idx].foraging_previous = 
+                    group_iter->members[individual_idx].foraging_current;
+
+                ++individual_idx;
+            }
+
+            if (group_iter->members.size() == 0)
+            {
+                group_iter->group_is_dead = true;
+            }
+        } // end for individual idx
     } // end for group
 } // end forage()
 
@@ -722,6 +769,7 @@ void Simulation::write_data_headers()
         << "p_forage" << ";"
         << "foraging_current" << ";"
         << "group_dead" << ";"
+        << "individual_dies_during_foraging" << ";"
         << "resource_increment_group" << ";"
         << "resource_increment_group_pc" << ";"
         << "cumul_resources" << ";"
@@ -775,12 +823,17 @@ void Simulation::write_parameters()
         << "logistic_max_bound;" << par.logistic_max_bound << ";" << std::endl
         << "sdmu;" << par.sdmu << ";" << std::endl
         << "p_high_quality;" << par.p_high_quality << ";" << std::endl
-        << "quality_weighting_low;" << par.quality_weighting[0] << ";" << std::endl
-        << "quality_weighting_hi;" << par.quality_weighting[1] << ";" << std::endl
+        << "food_encounter_rate_lo_q;" << par.food_encounter_rate[0] << ";" << std::endl
+        << "food_encounter_rate_hi_q;" << par.food_encounter_rate[1] << ";" << std::endl
+        << "mortality_prob_foraging_lo_q;" << par.mortality_prob_foraging[0] << ";" << std::endl
+        << "mortality_prob_foraging_hi_q;" << par.mortality_prob_foraging[1] << ";" << std::endl
         << "forage_individually;" << par.forage_individually << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
         << "var_R_start;" << par.var_R_start << ";" << std::endl
         << "var_R_perturb;" << par.var_R_perturb << ";" << std::endl
         << "generation_perturb;" << par.generation_perturb << ";" << std::endl
+        << "t_perturb_start;" << par.t_perturb_start << ";" << std::endl
+        << "t_perturb_end;" << par.t_perturb_end << ";" << std::endl
+        << "perturbation_type;" << par.perturbation_type << ";" << std::endl
     ;
 } // end write_parameters
