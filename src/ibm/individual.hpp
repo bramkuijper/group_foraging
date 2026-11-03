@@ -41,6 +41,8 @@ class Individual
         bool foraging_previous{false}; 
         bool foraging_current{false}; 
 
+        double mortality_prob_foraging[2]{0.1,0.01};
+
         // default constructor, used when we initialize
         // the simulation at t = 0
         Individual(Parameters const &parms);
