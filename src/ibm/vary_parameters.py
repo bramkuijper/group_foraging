@@ -17,19 +17,21 @@ nest_pred_baseline = 0.0
 nest_pred_scale = [0.05,0.1]
 
 # the different cue combinations
-# order is: resources, seasonal time (t), own quality (qown), other's quality (qother), action other
+# order is: resources, resources_cumul, seasonal time (t), own quality (qown), other's quality (qother), action other
 cues = [
-        [ 0, 0, 0, 0, 0],
-        [ 1, 0, 0, 0, 0],
-        [ 0, 1, 0, 0, 0],
-        [ 1, 1, 0, 0, 0],
-        [0,0,1,1,1], 
-        [1,1,1,1,1]
+        [ 0, 0, 0, 0, 0, 0],
+        [ 1, 0, 0, 0, 0, 0],
+        [ 0, 0, 1, 0, 0, 0],
+        [ 1, 0, 1, 0, 0, 0],
+        [ 0, 0, 0, 1, 1, 1], 
+        [ 1, 0, 1, 1, 1, 1]
         ]
 
 
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
+mu_a_resource_cumul = [0.05]
+mu_b_resource_cumul = [0.05]
 mu_a_t = [0.0]
 mu_b_t = [0.0]
 mu_a_qown = [0.0]
@@ -42,11 +44,13 @@ mu_b_action_other = [0.0]
 p_high_quality = [0.5]
 max_gen = 50000
 
+R_start = 4
+R_perturb = 1
 var_R_start = 0
 var_R_perturb = 0
 generation_perturb = 50500 
 t_perturb_start = 20
-t_perturb_end = 40
+t_perturb_end = 21
 perturbation_type = 0
 
 forage_individually = [0,1]
@@ -62,6 +66,8 @@ for i in range(0, nrep):
         for cue_combn_i in cues:
             mu_a_resource_i = 0.0
             mu_b_resource_i = 0.0
+            mu_a_resource_cumul_i = 0.0
+            mu_b_resource_cumul_i = 0.0
             mu_a_t_i = 0.0
             mu_b_t_i = 0.0
             mu_a_qown_i = 0.0
@@ -74,20 +80,24 @@ for i in range(0, nrep):
             if cue_combn_i[0] > 0:
                 mu_a_resource_i = 0.05
                 mu_b_resource_i = 0.05
-
+            
             if cue_combn_i[1] > 0:
+                mu_a_resource_cumul_i = 0.05
+                mu_b_resource_cumul_i = 0.05
+
+            if cue_combn_i[2] > 0:
                 mu_a_t_i = 0.05
                 mu_b_t_i = 0.05
             
-            if cue_combn_i[2] > 0:
+            if cue_combn_i[3] > 0:
                 mu_a_qown_i = 0.05
                 mu_b_qown_i = 0.05
             
-            if cue_combn_i[3] > 0:
+            if cue_combn_i[4] > 0:
                 mu_a_qother_i = 0.05
                 mu_b_qother_i = 0.05
 
-            if cue_combn_i[4] > 0:
+            if cue_combn_i[5] > 0:
                 mu_a_action_other_i = 0.05
                 mu_b_action_other_i = 0.05
 
@@ -101,6 +111,8 @@ for i in range(0, nrep):
                               f"{output_file} " +
                               f"{mu_a_resource_i} " + 
                               f"{mu_b_resource_i} " + 
+                              f"{mu_a_resource_cumul_i} " + 
+                              f"{mu_b_resource_cumul_i} " + 
                               f"{mu_a_t_i} " + 
                               f"{mu_b_t_i} " + 
                               f"{mu_a_qown_i} " + 
@@ -117,6 +129,8 @@ for i in range(0, nrep):
                               f"{epsilon} " + 
                               f"{forage_individually_i} " + 
                               f"{ac_i} " + 
+                              f"{R_start} " + 
+                              f"{R_perturb} " + 
                               f"{var_R_start} " + 
                               f"{var_R_perturb} " + 
                               f"{generation_perturb} " + 

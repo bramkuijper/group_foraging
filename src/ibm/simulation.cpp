@@ -49,6 +49,100 @@ void Simulation::calculate_across_season_stats()
 
 } // end calculate_across_season_stats
 
+void Simulation::reduce_resources()
+{
+    for (auto group_iter = metapopulation.begin();
+            group_iter != metapopulation.end();
+            ++group_iter)
+    {
+        group_iter->resources -= par.resource_decrease_perturb;
+
+        if (group_iter->resources < 0)
+        {
+            group_iter->resources = 0.0;
+        }
+    }
+} // end reduce_resources
+
+void Simulation::make_foragers_inactive()
+{
+    for (auto group_iter = metapopulation.begin();
+            group_iter != metapopulation.end();
+            ++group_iter)
+    {
+        for (auto member_iter = group_iter->members.begin();
+                member_iter != group_iter->members.end();
+                ++member_iter)
+        {
+            member_iter->currently_inactive = uniform(rng_r) < par.p_inactive_perturb;
+        }
+    }
+} // end make_foragers_inactive()
+
+void Simulation::make_foragers_active()
+{
+    for (auto group_iter = metapopulation.begin();
+            group_iter != metapopulation.end();
+            ++group_iter)
+    {
+        for (auto member_iter = group_iter->members.begin();
+                member_iter != group_iter->members.end();
+                ++member_iter)
+        {
+            member_iter->currently_inactive = false;
+        }
+    }
+    
+} // end make_foragers_active
+
+void Simulation::perturb_foraging_returns()
+{
+    par.R = par.R_perturb;
+    par.var_R = par.var_R_perturb;
+} // end change_foraging_returns
+
+void Simulation::restore_foraging_returns()
+{
+    par.R = par.R_start;
+    par.var_R = par.var_R_start;
+} // end change_foraging_returns
+
+// perturb resources or workers
+void Simulation::perturb(unsigned const t)
+{
+    if (par.perturbation_type == 0 &&
+            t >= par.t_perturb_start &&
+            t < par.t_perturb_end)
+    {
+        reduce_resources();
+    }
+    else if (t == par.t_perturb_start) // following perturb's only at t == t_start
+    {
+        if (par.perturbation_type == 1)
+        {
+            perturb_foraging_returns();
+        } 
+        else if (par.perturbation_type == 2)
+        {
+            make_foragers_inactive();
+        } 
+    } 
+} // end perturb
+
+void Simulation::restore(unsigned const t)
+{
+    if (t == par.t_perturb_end)
+    {
+        if (par.perturbation_type == 1)
+        {
+            restore_foraging_returns();
+        } 
+        else if (par.perturbation_type == 2)
+        {
+            make_foragers_active();
+        }
+    }
+} // end simulation::restore
 
 // forage (or not) for resources
 void Simulation::forage(
@@ -117,6 +211,7 @@ void Simulation::forage(
 
         resource_increment_group = 0.0;
 
+
         // cannot use iterators as we need to avoid
         // including the focal individual in calculating the 
         // averages of non-focal individuals
@@ -174,32 +269,15 @@ void Simulation::forage(
             // and calculate prob to forage
             p_forage = group_iter->members[individual_idx].prob_forage(
                 group_iter->resource_increment,
+                group_iter->resources,
                 static_cast<double>(t) / par.max_time_season,
                 static_cast<double>(quality),
                 average_quality_others,
                 average_action_previous_others);
 
-
-            // perform experimental perturbations
-            if (generation == par.generation_perturb &&
-                    (t >= par.t_perturb_start &&
-                    t < par.t_perturb_end))
+            if (group_iter->members[individual_idx].currently_inactive)
             {
-                switch(par.perturbation_type)
-                {
-                    case 0: // reducing value of resources
-                    {
-                        break;
-                    }
-                    case 1: // taking foragers away
-                    {
-                        break;
-                    }
-                    default:
-                    {
-                        break;
-                    }
-                }
+                p_forage = 0;
             }
 
             // ok individual goes out to forage
@@ -250,7 +328,8 @@ void Simulation::forage(
                     << average_quality_others << ";"
                     << average_action_previous_others << ";"
                     << p_forage << ";"
-                    << group_iter->members[individual_idx].foraging_current << ";";
+                    << group_iter->members[individual_idx].foraging_current << ";"
+                    << group_iter->members[individual_idx].currently_inactive << ";";
 
                 output_vector_dynamics[individual_idx] = output.str();
             } // end write_data_foraging
@@ -305,8 +384,7 @@ void Simulation::forage(
 
         // now that decisions have been made let's update action previous
         for (unsigned int individual_idx{0};
-                individual_idx < group_size;
-                group_iter->members.size()
+                individual_idx < group_iter->members.size();
                 )
         {
 
@@ -380,16 +458,12 @@ void Simulation::run()
 
     // initial level of resources
     par.var_R = par.var_R_start;
+    par.R = par.R_start;
 
     for (generation = 0; 
             generation <= par.max_generation; 
             ++generation)
     {
-        if (generation == par.generation_perturb)
-        {
-            par.var_R = par.var_R_perturb;
-        }
-
         // every generation start with an initial amount 
         // of resources
         // and also all groups are alive
@@ -409,6 +483,12 @@ void Simulation::run()
                 time_of_season <= par.max_time_season;
                 ++time_of_season)
         {
+            // perform experimental perturbations
+            if (generation == par.generation_perturb)
+            {
+                perturb(time_of_season);
+                restore(time_of_season);
+            } // end if generatio == par.generation_perturb
             forage(time_of_season, generation == par.max_generation);
         }
 
@@ -513,6 +593,12 @@ void Simulation::write_data()
     double mean_b_resource{0.0};
     double ss_b_resource{0.0};
     
+    double mean_a_resource_cumul{0.0};
+    double ss_a_resource_cumul{0.0};
+    
+    double mean_b_resource_cumul{0.0};
+    double ss_b_resource_cumul{0.0};
+    
     double mean_a_t{0.0};
     double ss_a_t{0.0};
     
@@ -585,6 +671,18 @@ void Simulation::write_data()
 
             mean_b_resource += x;             
             ss_b_resource += x * x;
+            
+            x = 0.5 * (individual_iter->a_resource_cumul[0] + 
+                individual_iter->a_resource_cumul[1]);
+
+            mean_a_resource_cumul += x;
+            ss_a_resource_cumul += x * x;
+
+            x = 0.5 * (individual_iter->b_resource_cumul[0] + 
+                individual_iter->b_resource_cumul[1]);
+
+            mean_b_resource_cumul += x;             
+            ss_b_resource_cumul += x * x;
 
             x = 0.5 * (individual_iter->a_t[0] + 
                 individual_iter->a_t[1]);
@@ -649,6 +747,15 @@ void Simulation::write_data()
     mean_b_resource /= n;
     double var_b_resource{ss_b_resource / n - mean_b_resource * mean_b_resource};
     
+    mean_a_resource_cumul /= n;
+
+    double var_a_resource_cumul{ss_a_resource_cumul / n - 
+        mean_a_resource_cumul * mean_a_resource_cumul};
+
+    mean_b_resource_cumul /= n;
+    double var_b_resource_cumul{ss_b_resource_cumul / n - 
+        mean_b_resource_cumul * mean_b_resource_cumul};
+    
     mean_a_t /= n;
     double var_a_t{ss_a_t / n - mean_a_t * mean_a_t};
     
@@ -693,6 +800,10 @@ void Simulation::write_data()
         << var_a_resource << ";"
         << mean_b_resource << ";"
         << var_b_resource << ";"
+        << mean_a_resource_cumul << ";"
+        << var_a_resource_cumul << ";"
+        << mean_b_resource_cumul << ";"
+        << var_b_resource_cumul << ";"
         << mean_a_t << ";"
         << var_a_t << ";"
         << mean_b_t << ";"
@@ -768,6 +879,7 @@ void Simulation::write_data_headers()
         << "avg_action_previous_others" << ";"
         << "p_forage" << ";"
         << "foraging_current" << ";"
+        << "currently_inactive" << ";"
         << "group_dead" << ";"
         << "individual_dies_during_foraging" << ";"
         << "resource_increment_group" << ";"
@@ -798,7 +910,6 @@ void Simulation::write_parameters()
         << "nest_pred_scale;" << par.nest_pred_scale << ";" << std::endl
         << "nest_pred_baseline;" << par.nest_pred_baseline << ";" << std::endl
         << "ac;" << par.ac << ";" << std::endl
-        << "R;" << par.R << ";" << std::endl
         << "mu_a_resource;" << par.mu_a_resource << ";" << std::endl
         << "mu_b_resource;" << par.mu_b_resource << ";" << std::endl
         << "a_resource_init;" << par.a_resource_init<< ";" << std::endl
@@ -829,11 +940,16 @@ void Simulation::write_parameters()
         << "mortality_prob_foraging_hi_q;" << par.mortality_prob_foraging[1] << ";" << std::endl
         << "forage_individually;" << par.forage_individually << ";" << std::endl
         << "init_p_group;" << par.init_p_group << ";" << std::endl
+        << "R;" << par.R << ";" << std::endl
+        << "R_start;" << par.R_start << ";" << std::endl
+        << "R_perturb;" << par.R_perturb << ";" << std::endl
+        << "var_R;" << par.var_R << ";" << std::endl
         << "var_R_start;" << par.var_R_start << ";" << std::endl
         << "var_R_perturb;" << par.var_R_perturb << ";" << std::endl
         << "generation_perturb;" << par.generation_perturb << ";" << std::endl
         << "t_perturb_start;" << par.t_perturb_start << ";" << std::endl
         << "t_perturb_end;" << par.t_perturb_end << ";" << std::endl
         << "perturbation_type;" << par.perturbation_type << ";" << std::endl
+        << "resource_decrease_perturb;" << par.resource_decrease_perturb << ";" << std::endl
     ;
 } // end write_parameters

@@ -11,9 +11,14 @@ class Individual
         // diploid loci for cues
         //
         // how much is decision to stay home dependent on 
-        // resource level of the brood
+        // the resource increment obtained in the previous time step
         double a_resource[2]{0.0,0.0};
         double b_resource[2]{0.0,0.0};
+        
+        // how much is decision to stay home dependent on 
+        // the resource increment obtained in the previous time step
+        double a_resource_cumul[2]{0.0,0.0};
+        double b_resource_cumul[2]{0.0,0.0};
 
         // how much is decision to stay home dependent on 
         // time of season
@@ -41,6 +46,8 @@ class Individual
         bool foraging_previous{false}; 
         bool foraging_current{false}; 
 
+        bool currently_inactive{false};
+
         double mortality_prob_foraging[2]{0.1,0.01};
 
         // default constructor, used when we initialize
@@ -65,7 +72,8 @@ class Individual
         // probability to forage 
         // which depends on cues
         double prob_forage(
-            double const resources,
+            double const resource_increment,
+            double const cumul_resources,
             double const time_cue,
             double const qown,
             double const qother,

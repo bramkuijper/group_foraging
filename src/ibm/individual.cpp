@@ -6,6 +6,8 @@
 Individual::Individual(Parameters const &parms) :
     a_resource{0.5 * parms.a_resource_init, 0.5 * parms.a_resource_init},
     b_resource{0.5 * parms.b_resource_init, 0.5 * parms.b_resource_init},
+    a_resource_cumul{0.5 * parms.a_resource_cumul_init, 0.5 * parms.a_resource_cumul_init},
+    b_resource_cumul{0.5 * parms.b_resource_cumul_init, 0.5 * parms.b_resource_cumul_init},
     a_t{0.5 * parms.a_t_init, 0.5 * parms.a_t_init},
     b_t{0.5 * parms.b_t_init, 0.5 * parms.b_t_init},
     a_qown{0.5 * parms.a_qown_init, 0.5 * parms.a_qown_init},
@@ -19,6 +21,8 @@ Individual::Individual(Parameters const &parms) :
 Individual::Individual(Individual const &other) :
     a_resource{other.a_resource[0],other.a_resource[1]},
     b_resource{other.b_resource[0],other.b_resource[1]},
+    a_resource_cumul{other.a_resource_cumul[0],other.a_resource_cumul[1]},
+    b_resource_cumul{other.b_resource_cumul[0],other.b_resource_cumul[1]},
     a_t{other.a_t[0],other.a_t[1]},
     b_t{other.b_t[0],other.b_t[1]},
     a_qown{other.a_qown[0],other.a_qown[1]},
@@ -35,7 +39,8 @@ Individual::Individual(Individual const &other) :
 // calculate probability an 
 // individual will go and forage
 double Individual::prob_forage(
-        double const resources,
+        double const resource_increment,
+        double const cumul_resources,
         double const time_cue,
         double const qown,
         double const qother,
@@ -44,7 +49,11 @@ double Individual::prob_forage(
     double exponent{
         0.5 * (b_resource[0] + b_resource[1]) *
             (
-                resources - 0.5 * (a_resource[0] + a_resource[1])
+                resource_increment - 0.5 * (a_resource[0] + a_resource[1])
+            )
+        + 0.5 * (b_resource_cumul[0] + b_resource_cumul[1]) *
+            (
+                cumul_resources - 0.5 * (a_resource_cumul[0] + a_resource_cumul[1])
             )
         + 0.5 * (b_t[0] + b_t[1]) *
             (
@@ -100,14 +109,23 @@ void Individual::mutate(
             b_resource[allele_idx] = std::clamp(b_resource[allele_idx], 
                     params.logistic_min_bound, 
                     params.logistic_max_bound);
+        }
+        
+        if (uniform(rng_r) < params.mu_a_resource_cumul)
+        {
+            a_resource_cumul[allele_idx] += normal(rng_r) * params.sdmu;
+
+            a_resource_cumul[allele_idx] = std::clamp(a_resource_cumul[allele_idx], 
+                    params.logistic_min_bound, 
+                    params.logistic_max_bound);
 
         }
         
-        if (uniform(rng_r) < params.mu_b_resource)
+        if (uniform(rng_r) < params.mu_b_resource_cumul)
         {
-            b_resource[allele_idx] += normal(rng_r) * params.sdmu;
+            b_resource_cumul[allele_idx] += normal(rng_r) * params.sdmu;
 
-            b_resource[allele_idx] = std::clamp(b_resource[allele_idx], 
+            b_resource_cumul[allele_idx] = std::clamp(b_resource_cumul[allele_idx], 
                     params.logistic_min_bound, 
                     params.logistic_max_bound);
         }
@@ -203,6 +221,9 @@ Individual::Individual(Individual const &mother,
 
     b_resource[0] = mother.b_resource[random_segregator(rng_r)];
     b_resource[1] = mother.b_resource[random_segregator(rng_r)];
+    
+    b_resource_cumul[0] = mother.b_resource_cumul[random_segregator(rng_r)];
+    b_resource_cumul[1] = mother.b_resource_cumul[random_segregator(rng_r)];
 
     a_t[0] = mother.a_t[random_segregator(rng_r)];
     a_t[1] = mother.a_t[random_segregator(rng_r)];
@@ -242,6 +263,8 @@ void Individual::operator=(Individual const &other)
     {
         a_resource[allele_idx] = other.a_resource[allele_idx];
         b_resource[allele_idx] = other.b_resource[allele_idx];
+        a_resource_cumul[allele_idx] = other.a_resource_cumul[allele_idx];
+        b_resource_cumul[allele_idx] = other.b_resource_cumul[allele_idx];
         a_t[allele_idx] = other.a_t[allele_idx];
         b_t[allele_idx] = other.b_t[allele_idx];
         a_qown[allele_idx] = other.a_qown[allele_idx];
@@ -255,4 +278,5 @@ void Individual::operator=(Individual const &other)
     quality = other.quality;
     foraging_previous = other.foraging_previous;
     foraging_current = other.foraging_current;
+    currently_inactive = other.currently_inactive;
 } 
