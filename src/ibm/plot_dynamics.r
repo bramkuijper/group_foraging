@@ -12,7 +12,9 @@ if (!exists("dyn_file"))
 output_file_name = paste0("graph_",basename(dyn_file),".pdf")
 
 dyn_data <- read_delim(file = dyn_file
-                       ,delim = ";") %>% mutate(
+                       ,delim = ";") %>% 
+    filter(group_dead == 0) %>%
+    mutate(
     group_size_f = as_factor(n_per_group),
     group_idx = as.integer(group_idx),
     group_idx_f = as_factor(group_idx),

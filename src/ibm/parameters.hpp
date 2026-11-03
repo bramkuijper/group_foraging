@@ -39,10 +39,6 @@ class Parameters
 
         // duration of the simulation
         unsigned int max_generation{10000};
-        unsigned int generation_perturb{max_generation};
-        unsigned int t_perturb_start{20};
-        unsigned int t_perturb_end{40};
-        unsigned int perturbation_type{0};
         
         unsigned int max_time_season{50};
 
@@ -71,14 +67,32 @@ class Parameters
 
         // cost of offspring development in terms of resources
         double ac{1.0};
+        
+        // anything relating to perturb
+        unsigned int generation_perturb{max_generation};
+        unsigned int t_perturb_start{20};
+        unsigned int t_perturb_end{40};
+        unsigned int perturbation_type{0};
 
         // resources gained per time step when foraging
         double R{4.0};
+        double R_start{4.0};
+        double R_perturb{4.0};
 
         double var_R_start{0.0};
         double var_R_perturb{0.0};
         double var_R{0.0};
         
+        // the amount of resources by which 
+        // the cumulative amount of resources is going 
+        // to decrease during a perturbation
+        double resource_decrease_perturb{0.5};
+       
+        // the probability an individual is inactive
+        // during a perturbation in which workers are being
+        // made inactive 
+        double p_inactive_perturb{0.5};
+
         // mutation rates and initial values
 
         // per-generation probabability that alleles mutate
@@ -86,9 +100,16 @@ class Parameters
         double mu_a_resource{0.0};
         double mu_b_resource{0.0};
         
-        // initial values for resource reaction norm
+        double mu_a_resource_cumul{0.0};
+        double mu_b_resource_cumul{0.0};
+        
+        // initial values for resource increment reaction norm
         double a_resource_init{0.0};
         double b_resource_init{0.0};
+        
+        // initial values for resource reaction norm
+        double a_resource_cumul_init{0.0};
+        double b_resource_cumul_init{0.0};
 
         // per-generation probabability that alleles mutate
         // for time of season reaction norm
@@ -134,6 +155,7 @@ class Parameters
         
         // how quality affects foraging encounter rates
         double mortality_prob_foraging[2]{0.01,0.001};
+
 
         // initial value of joining a group
         double init_p_group{0.25};

@@ -2,7 +2,6 @@
 #define _SIMULATION_HPP_
 
 // class that sets up the simulation
-
 #include <random>
 #include <fstream>
 #include "parameters.hpp"
@@ -74,6 +73,14 @@ class Simulation
 
         void forage(unsigned const t, bool const write_data);
         void learn();
+
+        void perturb(unsigned const t);
+        void restore(unsigned const t);
+        void reduce_resources();
+        void perturb_foraging_returns();
+        void restore_foraging_returns();
+        void make_foragers_inactive();
+        void make_foragers_active();
 
         void init_nest_predation();
         void reset_across_season_stats();
