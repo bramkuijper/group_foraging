@@ -19,25 +19,30 @@ nest_pred_scale = [0.05,0.1]
 # the different cue combinations
 # order is: resources, resources_cumul, seasonal time (t), own quality (qown), other's quality (qother), action other
 cues = [
-        [ 0, 0, 0, 0, 0, 0],
-        [ 1, 0, 0, 0, 0, 0],
-        [ 0, 0, 1, 0, 0, 0],
-        [ 1, 0, 1, 0, 0, 0],
-        [ 0, 0, 0, 1, 1, 1], 
-        [ 1, 0, 1, 1, 1, 1]
+        #        [ 0, 0, 0, 0, 0, 0],
+        #        [ 1, 0, 0, 0, 0, 0],
+        #        [ 0, 0, 1, 0, 0, 0],
+        #        [ 1, 0, 1, 0, 0, 0],
+        #        [ 0, 0, 0, 1, 1, 1], 
+        #        [ 1, 0, 1, 1, 1, 1],
+        [ 1, 1, 1, 1, 1, 1],
         ]
-
 
 mu_a_resource = [0.05]
 mu_b_resource = [0.05]
+
 mu_a_resource_cumul = [0.05]
 mu_b_resource_cumul = [0.05]
+
 mu_a_t = [0.0]
 mu_b_t = [0.0]
+
 mu_a_qown = [0.0]
 mu_b_qown = [0.0]
+
 mu_a_qother = [0.0]
 mu_b_qother = [0.0]
+
 mu_a_action_other = [0.0]
 mu_b_action_other = [0.0]
 
@@ -48,9 +53,10 @@ R_start = 4
 R_perturb = 1
 var_R_start = 0
 var_R_perturb = 0
-generation_perturb = 50500 
+generation_perturb = max_gen
 t_perturb_start = 20
 t_perturb_end = 21
+resource_decrease_perturb = 4
 perturbation_type = 0
 
 forage_individually = [0,1]
@@ -137,4 +143,5 @@ for i in range(0, nrep):
                               f"{t_perturb_start} " + 
                               f"{t_perturb_end} " + 
                               f"{perturbation_type} " + 
+                              f"{resource_decrease_perturb} " + 
                               f"{max_gen} ") 

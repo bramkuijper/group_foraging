@@ -36,7 +36,8 @@ int main(int argc, char **argv)
     params.t_perturb_start = static_cast<unsigned>(std::stoul(argv[27]));
     params.t_perturb_end = static_cast<unsigned>(std::stoul(argv[28]));
     params.perturbation_type = static_cast<unsigned>(std::stoul(argv[29]));
-    params.max_generation = static_cast<unsigned>(std::stoul(argv[30]));
+    params.resource_decrease_perturb = std::stod(argv[30]);
+    params.max_generation = static_cast<unsigned>(std::stoul(argv[31]));
 
     Simulation sim{params};
 
