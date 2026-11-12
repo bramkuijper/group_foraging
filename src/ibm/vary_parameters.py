@@ -55,7 +55,7 @@ var_R_start = 0
 var_R_perturb = 0
 generation_perturb = max_gen
 t_perturb_start = 20
-t_perturb_end = 21
+t_perturb_end = 25
 resource_decrease_perturb = 4
 perturbation_type = 0
 
