@@ -133,14 +133,8 @@ void Simulation::restore(unsigned const t)
 {
     if (t == par.t_perturb_end)
     {
-        if (par.perturbation_type == 1)
-        {
-            restore_foraging_returns();
-        } 
-        else if (par.perturbation_type == 2)
-        {
-            make_foragers_active();
-        }
+        restore_foraging_returns();
+        make_foragers_active();
     }
 } // end simulation::restore
 
@@ -189,13 +183,6 @@ void Simulation::forage(
             group_iter != metapopulation.end();
             ++group_iter)
     {
-        // ok group is dead
-        // it does not forage anymore
-        if (group_iter->group_is_dead)
-        {
-            continue;
-        }
-
         // calculate current group size
         group_size = static_cast<unsigned>(
                 group_iter->members.size());
@@ -275,7 +262,8 @@ void Simulation::forage(
                 average_quality_others,
                 average_action_previous_others);
 
-            if (group_iter->members[individual_idx].currently_inactive)
+            if (group_iter->members[individual_idx].currently_inactive ||
+                    group_iter->group_is_dead)
             {
                 p_forage = 0;
             }
@@ -364,19 +352,15 @@ void Simulation::forage(
 //                << " nest pred size: " << p_nest_predation.size() << " " << std::endl;
 
         // calculate predation of the nest
-        if (uniform(rng_r) < 
+        if (!group_iter->group_is_dead && uniform(rng_r) < 
                 p_nest_predation[n_foraging])
         {
             // group dead
             group_iter->resources = 0;
-
-            assert(!group_iter->group_is_dead);
-
             group_iter->group_is_dead = true;
             ++total_nests_predated_season;
         } else if (group_iter->resources < 0)
         {
-            assert(!group_iter->group_is_dead);
             group_iter->group_is_dead = true;
             group_iter->resources = 0;
         }
