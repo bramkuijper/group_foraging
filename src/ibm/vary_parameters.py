@@ -6,7 +6,7 @@ base_name = "sim_group_forage_"
 current_time = dt.datetime.now()
 base_name += current_time.strftime("%Y%m%d_%H%M%S")
 
-nrep = 10
+nrep = 3
 
 sim_counter = 0
 
@@ -14,18 +14,18 @@ sim_counter = 0
 init_resources = 10
 init_n_per_group = 5
 nest_pred_baseline = 0.0
-nest_pred_scale = [0.05,0.1]
+nest_pred_scale = [0.05]
 
 # the different cue combinations
 # order is: resources, resources_cumul, seasonal time (t), own quality (qown), other's quality (qother), action other
 cues = [
-        #        [ 0, 0, 0, 0, 0, 0],
-        #        [ 1, 0, 0, 0, 0, 0],
+        [ 0, 0, 0, 0, 0, 0],
+        [ 1, 0, 0, 0, 0, 0],
         #        [ 0, 0, 1, 0, 0, 0],
         #        [ 1, 0, 1, 0, 0, 0],
         #        [ 0, 0, 0, 1, 1, 1], 
         #        [ 1, 0, 1, 1, 1, 1],
-        [ 1, 1, 1, 1, 1, 1],
+        [ 1, 1, 1, 1, 1, 1]
         ]
 
 mu_a_resource = [0.05]
@@ -51,17 +51,22 @@ max_gen = 50000
 
 R_start = 4
 R_perturb = 1
-var_R_start = 0
-var_R_perturb = 0
+var_R_start = 0.1
+var_R_perturb = 0.1
 generation_perturb = max_gen
 t_perturb_start = 20
-t_perturb_end = 25
+t_perturb_end = 40
 resource_decrease_perturb = 4
-perturbation_type = 0
 
-forage_individually = [0,1]
+# the type of perturbation to perform
+# 0: reduce total resources 
+# 1: change the type of returns (in terms of mean and variance)
+# 2: make workers temporarily inactive
+perturbation_type = 2
 
-ac = [0,0.5,1]
+forage_individually = [0]
+
+ac = [0.5]
 
 epsilon = 0.75
 
