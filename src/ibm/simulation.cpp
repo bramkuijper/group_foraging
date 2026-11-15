@@ -900,6 +900,8 @@ void Simulation::write_parameters()
         << "ac;" << par.ac << ";" << std::endl
         << "mu_a_resource;" << par.mu_a_resource << ";" << std::endl
         << "mu_b_resource;" << par.mu_b_resource << ";" << std::endl
+        << "mu_a_resource_cumul;" << par.mu_a_resource_cumul << ";" << std::endl
+        << "mu_b_resource_cumul;" << par.mu_b_resource_cumul << ";" << std::endl
         << "a_resource_init;" << par.a_resource_init<< ";" << std::endl
         << "b_resource_init;" << par.a_resource_init << ";" << std::endl
         << "mu_a_t;" << par.mu_a_t << ";" << std::endl
