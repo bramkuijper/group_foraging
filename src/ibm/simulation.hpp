@@ -39,6 +39,8 @@ class Simulation
         // standard normal distribution
         std::normal_distribution <double> normal{};
 
+        std::uniform_int_distribution <unsigned> group_size_distribution{};
+
         // population of males, females and offspring
         std::vector <Group> metapopulation{};
 

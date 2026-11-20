@@ -1,4 +1,5 @@
 #include <cassert>
+#include <vector>
 #include <iterator>
 #include <random>
 #include <iostream>
@@ -15,11 +16,22 @@ Simulation::Simulation(Parameters const &params) :
     data_file{par.file_name}, // initialize the data file to write output to
     data_file_dynamics{par.file_name + "_dynamics"}, // initialize the data file to write output to
     uniform{0.0,1.0}, // initialize the uniform distribution 
+    group_size_distribution{1, par.init_n_per_group},
     metapopulation(par.n_group, 
         Group(par.init_n_per_group, params)), // initialize all individuals
     p_nest_predation(par.init_n_per_group + 1, 0.0) // 0, 1, ..., n individuals that can stay home
 {
     init_nest_predation();
+
+    for (auto metapopulation_iter = metapopulation.begin();
+            metapopulation_iter != metapopulation.end();
+            ++metapopulation_iter)
+    {
+        metapopulation_iter->members.resize(
+                group_size_distribution(rng_r),
+                Individual(par)
+                );
+    }
 }
 
 // reset the stats that are calculated over the season
@@ -327,6 +339,9 @@ void Simulation::forage(
         group_iter->resources -= par.ac;
 
         // now update resources for this group
+        // if they forage as a group (so as a group they get a fixed
+        // resource. The probability to get it increases with the number
+        // of individuals that are foraging in the group)
         if (!par.forage_individually && uniform(rng_r) < 
                 1.0 - std::exp(-par.epsilon * sum_quality_group))
         {
@@ -473,6 +488,7 @@ void Simulation::run()
                 perturb(time_of_season);
                 restore(time_of_season);
             } // end if generatio == par.generation_perturb
+            
             forage(time_of_season, generation == par.max_generation);
         }
 
@@ -522,9 +538,7 @@ void Simulation::reproduce()
             group_iter != metapopulation.end();
             ++group_iter)
     {
-        target_group_size = uniform(rng_r) < par.pr_single ?
-            1 : par.init_n_per_group;
-        
+        target_group_size = group_size_distribution(rng_r);       
         // remove any pre-existing juveniles in this group
         // which are basically left over from recruitment from
         // previous generations
@@ -888,7 +902,6 @@ void Simulation::write_parameters()
         << "seed;" << seed << ";" << std::endl
         << "n_group;" << par.n_group << ";" << std::endl
         << "init_n_per_group;" << par.init_n_per_group << ";" << std::endl
-        << "pr_single;" << par.pr_single << ";" << std::endl
         << "max_generation;" << par.max_generation << ";" << std::endl
         << "max_time_season;" << par.max_time_season << ";" << std::endl
         << "data_print_interval;" << par.data_print_interval << ";" << std::endl

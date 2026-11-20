@@ -34,9 +34,6 @@ class Parameters
         unsigned int n_group{2000};
         unsigned int init_n_per_group{5};
 
-        // probability of having a group with a single individual
-        double pr_single{0.5};
-
         // duration of the simulation
         unsigned int max_generation{10000};
         

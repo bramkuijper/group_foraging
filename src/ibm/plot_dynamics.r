@@ -148,9 +148,13 @@ dyn_data <- dyn_data %>% mutate(
             tf = as_factor(t)
         )
 
-p7 <- ggplot(data = dyn_data %>% filter(group_dead == 0 & t %in% c(19,35,50)), 
-       mapping = aes(x = cumul_resources)) +
-    geom_density(mapping = aes(colour = tf), alpha = 0.5,linewidth = 0.25) +
+p7 <- ggplot(
+        data = dyn_data %>% filter(group_dead == 0 & t %in% c(19,35,50)), 
+        mapping = aes(x = cumul_resources)) +
+    geom_density(
+            mapping = aes(colour = tf), 
+            alpha = 0.5,
+            linewidth = 0.25) +
     facet_grid(~n_per_group) +
     theme_classic()
 
